@@ -1,4 +1,5 @@
 (function() {
+    // Función para inyectar los recursos externos necesarios (Tailwind y Google Fonts)
     function loadExternalResources() {
         const resources = [
             { type: 'script', src: 'https://cdn.tailwindcss.com' },
@@ -25,6 +26,16 @@
 
     // Contenido CSS del componente
     const widgetCSS = `
+        /* --- Solución para el FOUC --- */
+        #boo-ai-widget-container {
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        #boo-ai-widget-container.widget-loaded {
+            opacity: 1;
+        }
+        /* --- FIN de la solución --- */
+
         body {
             font-family: 'Inter', sans-serif;
         }
@@ -469,7 +480,13 @@
         // 5. Agregar el contenedor al body de la página
         document.body.appendChild(widgetContainer);
 
-        // 6. Inicializar toda la lógica del widget después de que se haya agregado al DOM
+        // 6. Inicializar toda la lógica del widget
         initializeWidgetLogic();
+        
+        // 7. Revelar el widget suavemente
+        // Le damos un respiro mínimo al navegador para que Tailwind actúe
+        setTimeout(() => {
+            widgetContainer.classList.add('widget-loaded');
+        }, 50); // 50 milisegundos suelen ser suficientes
     });
 })();
