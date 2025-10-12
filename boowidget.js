@@ -9,7 +9,7 @@
         const widgetContainer = document.getElementById(targetDivId);
 
         if (!widgetContainer) {
-            console.error(`Error: Elemento #${targetDivId} no encontrado.`);
+            console.error(`Error: Contenedor #${targetDivId} no encontrado. El widget no puede cargar.`);
             return;
         }
 
@@ -91,35 +91,138 @@
         `;
 
         const widgetCSS = `
-            #${targetDivId} { font-family: 'Inter', sans-serif; }
+            #${targetDivId} {
+                font-family: 'Inter', sans-serif;
+            }
             #${targetDivId} textarea::-webkit-scrollbar { width: 6px; }
             #${targetDivId} textarea::-webkit-scrollbar-track { background: transparent; }
             #${targetDivId} textarea::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 3px; }
             #${targetDivId} textarea::-webkit-scrollbar-thumb:hover { background-color: #555555; }
-            #${targetDivId} .voice-visualizer-bar { animation: pulse 1s infinite ease-in-out; }
-            @keyframes pulse { 0%, 100% { transform: scaleY(0.2); } 50% { transform: scaleY(1); } }
-            #${targetDivId} #file-preview-container { display: flex; overflow-x: auto; overflow-y: hidden; flex-wrap: nowrap; padding-bottom: 8px; scrollbar-width: thin; scrollbar-color: #444444 transparent; }
+            #${targetDivId} .voice-visualizer-bar {
+                animation: pulse 1s infinite ease-in-out;
+            }
+            @keyframes pulse {
+                0%, 100% { transform: scaleY(0.2); }
+                50% { transform: scaleY(1); }
+            }
+            #${targetDivId} #file-preview-container {
+                display: flex;
+                overflow-x: auto;
+                overflow-y: hidden;
+                flex-wrap: nowrap;
+                padding-bottom: 8px;
+                scrollbar-width: thin;
+                scrollbar-color: #444444 transparent;
+            }
             #${targetDivId} #file-preview-container::-webkit-scrollbar { height: 4px; }
             #${targetDivId} #file-preview-container::-webkit-scrollbar-track { background: transparent; }
             #${targetDivId} #file-preview-container::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 2px; }
-            #${targetDivId} .file-preview-item { position: relative; display: flex; align-items: center; background-color: #2E3033; border-radius: 12px; padding: 8px; margin-right: 8px; margin-top: 4px; flex-shrink: 0; width: 180px; }
-            #${targetDivId} .file-preview-item .file-icon { flex-shrink: 0; width: 32px; height: 32px; border-radius: 8px; background-color: #EF4444; display: flex; align-items: center; justify-content: center; }
-            #${targetDivId} .file-preview-item .file-info { margin-left: 8px; display: flex; flex-direction: column; overflow: hidden; color: #E5E7EB; }
-            #${targetDivId} .file-preview-item .file-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.875rem; line-height: 1.25rem; }
-            #${targetDivId} .file-preview-item .file-type { font-size: 0.75rem; line-height: 1rem; color: #9CA3AF; }
-            #${targetDivId} .file-preview-item .remove-btn { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; border-radius: 9999px; background-color: #4B5563; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-            #${targetDivId} .file-preview-item img.preview-image { width: 32px; height: 32px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
-            #${targetDivId} #chat-container { scrollbar-width: thin; scrollbar-color: #444444 transparent; }
+            #${targetDivId} .file-preview-item {
+                position: relative;
+                display: flex;
+                align-items: center;
+                background-color: #2E3033;
+                border-radius: 12px;
+                padding: 8px;
+                margin-right: 8px;
+                margin-top: 4px;
+                flex-shrink: 0;
+                width: 180px;
+            }
+            #${targetDivId} .file-preview-item .file-icon {
+                flex-shrink: 0;
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                background-color: #EF4444;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            #${targetDivId} .file-preview-item .file-info {
+                margin-left: 8px;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                color: #E5E7EB;
+            }
+            #${targetDivId} .file-preview-item .file-name {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                font-size: 0.875rem;
+                line-height: 1.25rem;
+            }
+            #${targetDivId} .file-preview-item .file-type {
+                font-size: 0.75rem;
+                line-height: 1rem;
+                color: #9CA3AF;
+            }
+            #${targetDivId} .file-preview-item .remove-btn {
+                position: absolute;
+                top: -4px;
+                right: -4px;
+                width: 16px;
+                height: 16px;
+                border-radius: 9999px;
+                background-color: #4B5563;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+            }
+            #${targetDivId} .file-preview-item img.preview-image {
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                object-fit: cover;
+                flex-shrink: 0;
+            }
+            #${targetDivId} #chat-container {
+                scrollbar-width: thin;
+                scrollbar-color: #444444 transparent;
+            }
             #${targetDivId} #chat-container::-webkit-scrollbar { width: 6px; }
             #${targetDivId} #chat-container::-webkit-scrollbar-track { background: transparent; }
             #${targetDivId} #chat-container::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 3px; }
-            #${targetDivId} .user-message { background-color: #373A40; align-self: flex-end; text-align: left; }
-            #${targetDivId} .boo-message { background-color: rgba(0, 0, 0, 0.15); align-self: flex-start; text-align: left; }
-            #${targetDivId} .boo-message ul { padding-left: 1.25rem; }
-            #${targetDivId} .boo-message a { color: #93C5FD; text-decoration: underline; }
-            #${targetDivId} .boo-message a:hover { color: #BFDBFE; }
-            #${targetDivId} .typing-indicator-dot { animation: typing-pulse 1.4s infinite ease-in-out; display: inline-block; background-color: white; width: 8px; height: 8px; border-radius: 50%; }
-            @keyframes typing-pulse { 0%, 100% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } }
+            #${targetDivId} .user-message {
+                background-color: #373A40;
+                align-self: flex-end;
+                text-align: left;
+            }
+            #${targetDivId} .boo-message {
+                background-color: rgba(0, 0, 0, 0.15);
+                align-self: flex-start;
+                text-align: left;
+            }
+            #${targetDivId} .boo-message ul {
+                padding-left: 1.25rem;
+            }
+            #${targetDivId} .boo-message a {
+                color: #93C5FD;
+                text-decoration: underline;
+            }
+            #${targetDivId} .boo-message a:hover {
+                color: #BFDBFE;
+            }
+            #${targetDivId} .typing-indicator-dot {
+                animation: typing-pulse 1.4s infinite ease-in-out;
+                display: inline-block;
+                background-color: white;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+            }
+            @keyframes typing-pulse {
+                0%, 100% {
+                    transform: scale(0.8);
+                    opacity: 0.5;
+                }
+                50% {
+                    transform: scale(1.2);
+                    opacity: 1;
+                }
+            }
         `;
         
         function initializeBooWidget() {
@@ -315,7 +418,8 @@
                         copyButton.addEventListener('click', () => {
                             const textToCopy = messageBubble.innerText;
                             const tempTextArea = document.createElement('textarea');
-                            tempTextArea.style.position = 'absolute'; tempTextArea.style.left = '-9999px';
+                            tempTextArea.style.position = 'absolute';
+                            tempTextArea.style.left = '-9999px';
                             tempTextArea.value = textToCopy;
                             document.body.appendChild(tempTextArea);
                             tempTextArea.select();
@@ -329,7 +433,9 @@
                                     copyIcon.classList.remove('hidden');
                                     checkIcon.classList.add('hidden');
                                 }, 2000);
-                            } catch (err) { console.error('No se pudo copiar el texto:', err); }
+                            } catch (err) {
+                                console.error('No se pudo copiar el texto:', err);
+                            }
                             document.body.removeChild(tempTextArea);
                         });
                         messageWrapper.appendChild(copyButton);
@@ -355,17 +461,28 @@
                     reader.readAsDataURL(file);
                     reader.onload = () => {
                         const base64String = reader.result.split(',')[1];
-                        resolve({ fileName: file.name, fileType: file.type, fileContent: base64String });
+                        resolve({
+                            fileName: file.name,
+                            fileType: file.type,
+                            fileContent: base64String
+                        });
                     };
                     reader.onerror = error => reject(error);
                 });
             };
 
             const updateButtonState = () => {
-                if (isRecording) { sendButton.classList.add('hidden'); return; }
+                if (isRecording) {
+                    sendButton.classList.add('hidden');
+                    return;
+                }
                 const hasMessage = textarea.value.trim().length > 0;
                 const hasFiles = fileStore.length > 0;
-                if (hasMessage || hasFiles) { sendButton.classList.remove('hidden'); } else { sendButton.classList.add('hidden'); }
+                if (hasMessage || hasFiles) {
+                    sendButton.classList.remove('hidden');
+                } else {
+                    sendButton.classList.add('hidden');
+                }
             };
 
             const playNotificationSound = () => {
@@ -382,7 +499,9 @@
                     gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.4);
                     oscillator.start(audioCtx.currentTime);
                     oscillator.stop(audioCtx.currentTime + 0.4);
-                } catch (e) { console.error("Error al reproducir el sonido de notificación:", e); }
+                } catch (e) {
+                    console.error("Error al reproducir el sonido de notificación:", e);
+                }
             };
 
             const handleSubmit = async () => {
@@ -392,7 +511,10 @@
                 if (!message && !file) return;
                 isWaitingForResponse = true;
                 displayUserMessage(message, file);
-                const payload = { userId, message };
+                const payload = {
+                    userId,
+                    message
+                };
                 if (file) {
                     try {
                         const fileData = await fileToBase64(file);
@@ -412,7 +534,9 @@
                 try {
                     const response = await fetch(webhookUrl, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
                         body: JSON.stringify(payload)
                     });
                     if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
@@ -441,7 +565,10 @@
             };
 
             const startRecording = () => {
-                if (!recognition) { alert("El reconocimiento de voz no es compatible con este navegador."); return; }
+                if (!recognition) {
+                    alert("El reconocimiento de voz no es compatible con este navegador.");
+                    return;
+                }
                 if (isRecording) return;
                 textBeforeRecording = textarea.value;
                 isRecording = true;
