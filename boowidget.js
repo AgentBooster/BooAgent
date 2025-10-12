@@ -1,161 +1,183 @@
 (function() {
-    /**
-     * Esta función se ejecuta cuando el DOM está listo.
-     * Busca el elemento con id 'boo-ai-widget' e inyecta el HTML, CSS y la lógica del widget.
-     */
-    function initializeBooWidget() {
-        const targetDiv = document.getElementById('boo-ai-widget');
-        if (!targetDiv) {
-            console.error('El contenedor del widget de Boo AI (id="boo-ai-widget") no fue encontrado en la página.');
+    // --- PASO 1: ESPERAR A QUE EL DOCUMENTO ESTÉ LISTO ---
+    // Esto evita que el script se ejecute antes de que la página haya cargado, previniendo el "congelamiento".
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // --- PASO 2: DEFINIR EL CONTENEDOR DEL WIDGET ---
+        const targetDivId = 'boo-ai-widget';
+        const widgetContainer = document.getElementById(targetDivId);
+
+        if (!widgetContainer) {
+            console.error(`Error: No se encontró el elemento contenedor con el ID '${targetDivId}'. El widget de Boo AI no se puede cargar.`);
             return;
         }
+        
+        // --- PASO 3: CARGAR DEPENDENCIAS EXTERNAS (FUENTES Y TAILWIND) ---
+        // Se crean y añaden las etiquetas <link> y <script> necesarias al <head> de la página.
+        const googleFont = document.createElement('link');
+        googleFont.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap';
+        googleFont.rel = 'stylesheet';
+        document.head.appendChild(googleFont);
+        
+        const tailwindScript = document.createElement('script');
+        tailwindScript.src = 'https://cdn.tailwindcss.com';
+        document.head.appendChild(tailwindScript);
 
-        // Contenido completo del widget (HTML y CSS)
-        const widgetContent = `
-            <style>
-                /* Estilos generales del widget */
-                #boo-ai-widget {
-                    font-family: 'Inter', sans-serif;
-                    line-height: 1.5;
+        // --- PASO 4: DEFINIR LOS ESTILOS CSS DEL WIDGET ---
+        // Todo tu CSS se inyectará en una etiqueta <style>.
+        // Nota: He cambiado el selector 'body' a '#boo-ai-widget' para que la fuente
+        // 'Inter' solo aplique a tu widget y no afecte al resto de la página del usuario.
+        const widgetCSS = `
+            #boo-ai-widget {
+                font-family: 'Inter', sans-serif;
+            }
+            #boo-ai-widget textarea::-webkit-scrollbar { width: 6px; }
+            #boo-ai-widget textarea::-webkit-scrollbar-track { background: transparent; }
+            #boo-ai-widget textarea::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 3px; }
+            #boo-ai-widget textarea::-webkit-scrollbar-thumb:hover { background-color: #555555; }
+            #boo-ai-widget .voice-visualizer-bar {
+                animation: pulse 1s infinite ease-in-out;
+            }
+            @keyframes pulse {
+                0%, 100% { transform: scaleY(0.2); }
+                50% { transform: scaleY(1); }
+            }
+            /* --- ESTILOS PARA VISTA PREVIA DE ARCHIVOS --- */
+            #boo-ai-widget #file-preview-container {
+                display: flex;
+                overflow-x: auto;
+                overflow-y: hidden;
+                flex-wrap: nowrap;
+                padding-bottom: 8px; /* Espacio para la barra de scroll */
+                scrollbar-width: thin;
+                scrollbar-color: #444444 transparent;
+            }
+            #boo-ai-widget #file-preview-container::-webkit-scrollbar { height: 4px; }
+            #boo-ai-widget #file-preview-container::-webkit-scrollbar-track { background: transparent; }
+            #boo-ai-widget #file-preview-container::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 2px; }
+            #boo-ai-widget .file-preview-item {
+                position: relative;
+                display: flex;
+                align-items: center;
+                background-color: #2E3033;
+                border-radius: 12px;
+                padding: 8px;
+                margin-right: 8px;
+                margin-top: 4px; /* Ajuste para dar espacio al botón de eliminar */
+                flex-shrink: 0;
+                width: 180px;
+            }
+            #boo-ai-widget .file-preview-item .file-icon {
+                flex-shrink: 0;
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                background-color: #EF4444;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            #boo-ai-widget .file-preview-item .file-info {
+                margin-left: 8px;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                color: #E5E7EB;
+            }
+            #boo-ai-widget .file-preview-item .file-name {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                font-size: 0.875rem;
+                line-height: 1.25rem;
+            }
+            #boo-ai-widget .file-preview-item .file-type {
+                font-size: 0.75rem;
+                line-height: 1rem;
+                color: #9CA3AF;
+            }
+            #boo-ai-widget .file-preview-item .remove-btn {
+                position: absolute;
+                top: -4px;
+                right: -4px;
+                width: 16px;
+                height: 16px;
+                border-radius: 9999px;
+                background-color: #4B5563;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+            }
+            #boo-ai-widget .file-preview-item img.preview-image {
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                object-fit: cover;
+                flex-shrink: 0;
+            }
+            /* --- ESTILOS PARA EL CHAT --- */
+            #boo-ai-widget #chat-container {
+                scrollbar-width: thin;
+                scrollbar-color: #444444 transparent;
+            }
+            #boo-ai-widget #chat-container::-webkit-scrollbar { width: 6px; }
+            #boo-ai-widget #chat-container::-webkit-scrollbar-track { background: transparent; }
+            #boo-ai-widget #chat-container::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 3px; }
+
+            #boo-ai-widget .user-message {
+                background-color: #373A40;
+                align-self: flex-end;
+                text-align: left; /* Alinea el texto a la izquierda */
+            }
+            #boo-ai-widget .boo-message {
+                background-color: rgba(0, 0, 0, 0.15); /* Fondo semitransparente para Boo */
+                align-self: flex-start;
+                text-align: left; /* Alinea el texto a la izquierda */
+            }
+            #boo-ai-widget .boo-message ul {
+                padding-left: 1.25rem;
+            }
+            #boo-ai-widget .boo-message a {
+                color: #93C5FD;
+                text-decoration: underline;
+            }
+            #boo-ai-widget .boo-message a:hover {
+                color: #BFDBFE;
+            }
+
+
+            /* --- ESTILOS PARA INDICADOR DE ESCRITURA --- */
+            #boo-ai-widget .typing-indicator-dot {
+                animation: typing-pulse 1.4s infinite ease-in-out;
+                display: inline-block;
+                background-color: white;
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+            }
+
+            @keyframes typing-pulse {
+                0%, 100% {
+                    transform: scale(0.8);
+                    opacity: 0.5;
                 }
-                #boo-ai-widget textarea::-webkit-scrollbar { width: 6px; }
-                #boo-ai-widget textarea::-webkit-scrollbar-track { background: transparent; }
-                #boo-ai-widget textarea::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 3px; }
-                #boo-ai-widget textarea::-webkit-scrollbar-thumb:hover { background-color: #555555; }
-                #boo-ai-widget .voice-visualizer-bar {
-                    animation: pulse 1s infinite ease-in-out;
+                50% {
+                    transform: scale(1.2);
+                    opacity: 1;
                 }
-                @keyframes pulse {
-                    0%, 100% { transform: scaleY(0.2); }
-                    50% { transform: scaleY(1); }
-                }
-                /* --- ESTILOS PARA VISTA PREVIA DE ARCHIVOS --- */
-                #boo-ai-widget #file-preview-container {
-                    display: flex;
-                    overflow-x: auto;
-                    overflow-y: hidden;
-                    flex-wrap: nowrap;
-                    padding-bottom: 8px; /* Espacio para la barra de scroll */
-                    scrollbar-width: thin;
-                    scrollbar-color: #444444 transparent;
-                }
-                #boo-ai-widget #file-preview-container::-webkit-scrollbar { height: 4px; }
-                #boo-ai-widget #file-preview-container::-webkit-scrollbar-track { background: transparent; }
-                #boo-ai-widget #file-preview-container::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 2px; }
-                #boo-ai-widget .file-preview-item {
-                    position: relative;
-                    display: flex;
-                    align-items: center;
-                    background-color: #2E3033;
-                    border-radius: 12px;
-                    padding: 8px;
-                    margin-right: 8px;
-                    margin-top: 4px; /* Ajuste para dar espacio al botón de eliminar */
-                    flex-shrink: 0;
-                    width: 180px;
-                }
-                #boo-ai-widget .file-preview-item .file-icon {
-                    flex-shrink: 0;
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 8px;
-                    background-color: #EF4444;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-                #boo-ai-widget .file-preview-item .file-info {
-                    margin-left: 8px;
-                    display: flex;
-                    flex-direction: column;
-                    overflow: hidden;
-                    color: #E5E7EB;
-                }
-                #boo-ai-widget .file-preview-item .file-name {
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    font-size: 0.875rem;
-                    line-height: 1.25rem;
-                }
-                #boo-ai-widget .file-preview-item .file-type {
-                    font-size: 0.75rem;
-                    line-height: 1rem;
-                    color: #9CA3AF;
-                }
-                #boo-ai-widget .file-preview-item .remove-btn {
-                    position: absolute;
-                    top: -4px;
-                    right: -4px;
-                    width: 16px;
-                    height: 16px;
-                    border-radius: 9999px;
-                    background-color: #4B5563;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    cursor: pointer;
-                }
-                #boo-ai-widget .file-preview-item img.preview-image {
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 8px;
-                    object-fit: cover;
-                    flex-shrink: 0;
-                }
-                /* --- ESTILOS PARA EL CHAT --- */
-                #boo-ai-widget #chat-container {
-                    scrollbar-width: thin;
-                    scrollbar-color: #444444 transparent;
-                }
-                #boo-ai-widget #chat-container::-webkit-scrollbar { width: 6px; }
-                #boo-ai-widget #chat-container::-webkit-scrollbar-track { background: transparent; }
-                #boo-ai-widget #chat-container::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 3px; }
-                #boo-ai-widget .user-message {
-                    background-color: #373A40;
-                    align-self: flex-end;
-                    text-align: left; /* Alinea el texto a la izquierda */
-                }
-                #boo-ai-widget .boo-message {
-                    background-color: rgba(0, 0, 0, 0.15); /* Fondo semitransparente para Boo */
-                    align-self: flex-start;
-                    text-align: left; /* Alinea el texto a la izquierda */
-                }
-                #boo-ai-widget .boo-message ul {
-                    padding-left: 1.25rem;
-                }
-                #boo-ai-widget .boo-message a {
-                    color: #93C5FD;
-                    text-decoration: underline;
-                }
-                #boo-ai-widget .boo-message a:hover {
-                    color: #BFDBFE;
-                }
-                /* --- ESTILOS PARA INDICADOR DE ESCRITURA --- */
-                #boo-ai-widget .typing-indicator-dot {
-                    animation: typing-pulse 1.4s infinite ease-in-out;
-                    display: inline-block;
-                    background-color: white;
-                    width: 8px;
-                    height: 8px;
-                    border-radius: 50%;
-                }
-                @keyframes typing-pulse {
-                    0%, 100% {
-                        transform: scale(0.8);
-                        opacity: 0.5;
-                    }
-                    50% {
-                        transform: scale(1.2);
-                        opacity: 1;
-                    }
-                }
-            </style>
-            
-            <script src="https://cdn.tailwindcss.com"></script>
-            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-            
-            <div id="main-container" class="w-full max-w-6xl rounded-2xl shadow-2xl p-6 md:p-8 text-white relative overflow-hidden flex flex-col transition-all duration-500" style="background: radial-gradient(125% 125% at 50% 101%, rgba(245,87,2,1) 10.5%, rgba(245,120,2,1) 16%, rgba(245,140,2,1) 17.5%, rgba(245,170,100,1) 25%, rgba(238,174,202,1) 40%, rgba(202,179,214,1) 65%, rgba(148,201,233,1) 100%); height: 100vh;">
+            }
+        `;
+        const styleTag = document.createElement('style');
+        styleTag.innerHTML = widgetCSS;
+        document.head.appendChild(styleTag);
+        
+        // --- PASO 5: DEFINIR LA ESTRUCTURA HTML DEL WIDGET ---
+        // Todo el contenido de tu <body> está aquí, sin cambios.
+        // El estilo 'height: 100vh' hará que el widget ocupe toda la altura de la ventana.
+        // Si necesitas que se adapte al contenido, puedes cambiarlo por 'height: 100%' o similar.
+        const widgetHTML = `
+            <div id="main-container" class="w-full max-w-6xl rounded-2xl shadow-2xl p-6 md:p-8 text-white relative overflow-hidden flex flex-col transition-all duration-500" style="background: radial-gradient(125% 125% at 50% 101%, rgba(245,87,2,1) 10.5%, rgba(245,120,2,1) 16%, rgba(245,140,2,1) 17.5%, rgba(245,170,100,1) 25%, rgba(238,174,202,1) 40%, rgba(202,179,214,1) 65%, rgba(148,201,233,1) 100%); height: 100vh; width: 100%;">
                 <header class="flex-shrink-0 relative">
                     <div class="flex justify-center">
                         <div class="bg-black/20 backdrop-blur-sm rounded-full pl-2 pr-4 py-2 flex items-center gap-3 w-fit">
@@ -192,7 +214,7 @@
                         </div>
                     </div>
                     <div id="chat-container" class="hidden w-full h-full flex-col gap-4 overflow-y-auto">
-                        </div>
+                    </div>
                 </main>
                 <footer class="flex-shrink-0">
                     <div class="relative max-w-2xl mx-auto w-full">
@@ -230,13 +252,13 @@
                 </footer>
             </div>
         `;
+        
+        // --- PASO 6: INYECTAR EL HTML EN EL CONTENEDOR ---
+        widgetContainer.innerHTML = widgetHTML;
 
-        // Inyecta el contenido del widget en el div de destino.
-        targetDiv.innerHTML = widgetContent;
-
-        // --- INICIO DE LA LÓGICA ORIGINAL DEL WIDGET ---
-        // (Todo el código del <script> original, ahora aplicado a los elementos recién creados)
-
+        // --- PASO 7: EJECUTAR LA LÓGICA ORIGINAL DEL WIDGET ---
+        // Este código es exactamente el tuyo, copiado y pegado.
+        // Se ejecuta DESPUÉS de que el HTML del widget exista en la página.
         const mainContainer = document.getElementById('main-container');
         const contentArea = document.getElementById('content-area');
         const initialView = document.getElementById('initial-view');
@@ -282,7 +304,6 @@
             recognition.lang = 'es-ES';
             recognition.interimResults = true;
             recognition.continuous = true; 
-
             recognition.onresult = (event) => {
                 let fullTranscript = '';
                 for (let i = 0; i < event.results.length; i++) {
@@ -471,7 +492,7 @@
             indicatorContainer.className = 'w-full flex justify-start';
             indicatorContainer.innerHTML = `
                 <div class="flex items-center gap-2 max-w-md md:max-w-lg rounded-2xl p-3 text-sm boo-message">
-                    <img class="w-6 h-6 rounded-full" src="https://res.cloudinary.com/dsdnpstgi/image/upload/v1756503469/Boo_Mastermind_-_vasyl_pavlyuchok_40606_httpss.mj.runDaU8K48LteU_close-up_port_3b5e9292-ef3c-4c7f-93c8-c1a99da3780e_3_skkffe.png" alt="Boo Avatar">
+                     <img class="w-6 h-6 rounded-full" src="https://res.cloudinary.com/dsdnpstgi/image/upload/v1756503469/Boo_Mastermind_-_vasyl_pavlyuchok_40606_httpss.mj.runDaU8K48LteU_close-up_port_3b5e9292-ef3c-4c7f-93c8-c1a99da3780e_3_skkffe.png" alt="Boo Avatar">
                     <div class="typing-indicator-dot" style="animation-delay: 0s;"></div>
                 </div>
             `;
@@ -694,14 +715,6 @@
         // Init
         updateButtonState();
         autoResize();
-        
-        // --- FIN DE LA LÓGICA ORIGINAL DEL WIDGET ---
-    }
 
-    // Asegurarse de que el DOM esté cargado antes de ejecutar el script.
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeBooWidget);
-    } else {
-        initializeBooWidget();
-    }
+    });
 })();
