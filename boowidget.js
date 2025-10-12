@@ -1,19 +1,8 @@
 (function() {
-    function loadStylesheet(href) {
-        if (document.querySelector(`link[href="${href}"]`)) return; // No la cargues si ya existe
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = href;
-        document.head.appendChild(link);
-    }
-
-    function loadScript(src) {
-        if (document.querySelector(`script[src="${src}"]`)) return; // No lo cargues si ya existe
-        const script = document.createElement('script');
-        script.src = src;
-        document.head.appendChild(script);
-    }
-
+    /**
+     * Esta función se ejecuta cuando el DOM está listo.
+     * Busca el elemento con id 'boo-ai-widget' e inyecta el HTML, CSS y la lógica del widget.
+     */
     function initializeBooWidget() {
         const targetDiv = document.getElementById('boo-ai-widget');
         if (!targetDiv) {
@@ -21,9 +10,7 @@
             return;
         }
 
-        loadStylesheet('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        loadScript('https://cdn.tailwindcss.com');
-
+        // Contenido completo del widget (HTML y CSS)
         const widgetContent = `
             <style>
                 /* Estilos generales del widget */
@@ -35,37 +22,138 @@
                 #boo-ai-widget textarea::-webkit-scrollbar-track { background: transparent; }
                 #boo-ai-widget textarea::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 3px; }
                 #boo-ai-widget textarea::-webkit-scrollbar-thumb:hover { background-color: #555555; }
-                #boo-ai-widget .voice-visualizer-bar { animation: pulse 1s infinite ease-in-out; }
+                #boo-ai-widget .voice-visualizer-bar {
+                    animation: pulse 1s infinite ease-in-out;
+                }
                 @keyframes pulse {
                     0%, 100% { transform: scaleY(0.2); }
                     50% { transform: scaleY(1); }
                 }
-                #boo-ai-widget #file-preview-container { display: flex; overflow-x: auto; overflow-y: hidden; flex-wrap: nowrap; padding-bottom: 8px; scrollbar-width: thin; scrollbar-color: #444444 transparent; }
+                /* --- ESTILOS PARA VISTA PREVIA DE ARCHIVOS --- */
+                #boo-ai-widget #file-preview-container {
+                    display: flex;
+                    overflow-x: auto;
+                    overflow-y: hidden;
+                    flex-wrap: nowrap;
+                    padding-bottom: 8px; /* Espacio para la barra de scroll */
+                    scrollbar-width: thin;
+                    scrollbar-color: #444444 transparent;
+                }
                 #boo-ai-widget #file-preview-container::-webkit-scrollbar { height: 4px; }
                 #boo-ai-widget #file-preview-container::-webkit-scrollbar-track { background: transparent; }
                 #boo-ai-widget #file-preview-container::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 2px; }
-                #boo-ai-widget .file-preview-item { position: relative; display: flex; align-items: center; background-color: #2E3033; border-radius: 12px; padding: 8px; margin-right: 8px; margin-top: 4px; flex-shrink: 0; width: 180px; }
-                #boo-ai-widget .file-preview-item .file-icon { flex-shrink: 0; width: 32px; height: 32px; border-radius: 8px; background-color: #EF4444; display: flex; align-items: center; justify-content: center; }
-                #boo-ai-widget .file-preview-item .file-info { margin-left: 8px; display: flex; flex-direction: column; overflow: hidden; color: #E5E7EB; }
-                #boo-ai-widget .file-preview-item .file-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.875rem; line-height: 1.25rem; }
-                #boo-ai-widget .file-preview-item .file-type { font-size: 0.75rem; line-height: 1rem; color: #9CA3AF; }
-                #boo-ai-widget .file-preview-item .remove-btn { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; border-radius: 9999px; background-color: #4B5563; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-                #boo-ai-widget .file-preview-item img.preview-image { width: 32px; height: 32px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
-                #boo-ai-widget #chat-container { scrollbar-width: thin; scrollbar-color: #444444 transparent; }
+                #boo-ai-widget .file-preview-item {
+                    position: relative;
+                    display: flex;
+                    align-items: center;
+                    background-color: #2E3033;
+                    border-radius: 12px;
+                    padding: 8px;
+                    margin-right: 8px;
+                    margin-top: 4px; /* Ajuste para dar espacio al botón de eliminar */
+                    flex-shrink: 0;
+                    width: 180px;
+                }
+                #boo-ai-widget .file-preview-item .file-icon {
+                    flex-shrink: 0;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 8px;
+                    background-color: #EF4444;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                #boo-ai-widget .file-preview-item .file-info {
+                    margin-left: 8px;
+                    display: flex;
+                    flex-direction: column;
+                    overflow: hidden;
+                    color: #E5E7EB;
+                }
+                #boo-ai-widget .file-preview-item .file-name {
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    font-size: 0.875rem;
+                    line-height: 1.25rem;
+                }
+                #boo-ai-widget .file-preview-item .file-type {
+                    font-size: 0.75rem;
+                    line-height: 1rem;
+                    color: #9CA3AF;
+                }
+                #boo-ai-widget .file-preview-item .remove-btn {
+                    position: absolute;
+                    top: -4px;
+                    right: -4px;
+                    width: 16px;
+                    height: 16px;
+                    border-radius: 9999px;
+                    background-color: #4B5563;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                }
+                #boo-ai-widget .file-preview-item img.preview-image {
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 8px;
+                    object-fit: cover;
+                    flex-shrink: 0;
+                }
+                /* --- ESTILOS PARA EL CHAT --- */
+                #boo-ai-widget #chat-container {
+                    scrollbar-width: thin;
+                    scrollbar-color: #444444 transparent;
+                }
                 #boo-ai-widget #chat-container::-webkit-scrollbar { width: 6px; }
                 #boo-ai-widget #chat-container::-webkit-scrollbar-track { background: transparent; }
                 #boo-ai-widget #chat-container::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 3px; }
-                #boo-ai-widget .user-message { background-color: #373A40; align-self: flex-end; text-align: left; }
-                #boo-ai-widget .boo-message { background-color: rgba(0, 0, 0, 0.15); align-self: flex-start; text-align: left; }
-                #boo-ai-widget .boo-message ul { padding-left: 1.25rem; }
-                #boo-ai-widget .boo-message a { color: #93C5FD; text-decoration: underline; }
-                #boo-ai-widget .boo-message a:hover { color: #BFDBFE; }
-                #boo-ai-widget .typing-indicator-dot { animation: typing-pulse 1.4s infinite ease-in-out; display: inline-block; background-color: white; width: 8px; height: 8px; border-radius: 50%; }
+                #boo-ai-widget .user-message {
+                    background-color: #373A40;
+                    align-self: flex-end;
+                    text-align: left; /* Alinea el texto a la izquierda */
+                }
+                #boo-ai-widget .boo-message {
+                    background-color: rgba(0, 0, 0, 0.15); /* Fondo semitransparente para Boo */
+                    align-self: flex-start;
+                    text-align: left; /* Alinea el texto a la izquierda */
+                }
+                #boo-ai-widget .boo-message ul {
+                    padding-left: 1.25rem;
+                }
+                #boo-ai-widget .boo-message a {
+                    color: #93C5FD;
+                    text-decoration: underline;
+                }
+                #boo-ai-widget .boo-message a:hover {
+                    color: #BFDBFE;
+                }
+                /* --- ESTILOS PARA INDICADOR DE ESCRITURA --- */
+                #boo-ai-widget .typing-indicator-dot {
+                    animation: typing-pulse 1.4s infinite ease-in-out;
+                    display: inline-block;
+                    background-color: white;
+                    width: 8px;
+                    height: 8px;
+                    border-radius: 50%;
+                }
                 @keyframes typing-pulse {
-                    0%, 100% { transform: scale(0.8); opacity: 0.5; }
-                    50% { transform: scale(1.2); opacity: 1; }
+                    0%, 100% {
+                        transform: scale(0.8);
+                        opacity: 0.5;
+                    }
+                    50% {
+                        transform: scale(1.2);
+                        opacity: 1;
+                    }
                 }
             </style>
+            
+            <script src="https://cdn.tailwindcss.com"></script>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
             
             <div id="main-container" class="w-full max-w-6xl rounded-2xl shadow-2xl p-6 md:p-8 text-white relative overflow-hidden flex flex-col transition-all duration-500" style="background: radial-gradient(125% 125% at 50% 101%, rgba(245,87,2,1) 10.5%, rgba(245,120,2,1) 16%, rgba(245,140,2,1) 17.5%, rgba(245,170,100,1) 25%, rgba(238,174,202,1) 40%, rgba(202,179,214,1) 65%, rgba(148,201,233,1) 100%); height: 100vh;">
                 <header class="flex-shrink-0 relative">
@@ -82,13 +170,19 @@
                         <button id="reset-chat-button" class="bg-black/20 backdrop-blur-sm hover:bg-black/30 rounded-full p-2 text-sm transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white/80"><path d="M3 2v6h6"/><path d="M21 12A9 9 0 0 0 6 5.3L3 8"/><path d="M21 22v-6h-6"/><path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"/></svg>
                         </button>
-                        <span class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-max bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Reiniciar chat</span>
+                        <span class="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-max bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                            Reiniciar chat
+                        </span>
                     </div>
                 </header>
                 <main id="content-area" class="mt-4 flex-1 flex flex-col items-center text-center overflow-hidden transition-all duration-500 justify-center">
                     <div id="initial-view" class="w-full space-y-6 transition-opacity duration-500">
-                        <h1 class="text-4xl md:text-5xl font-bold leading-tight mt-6">¿Puedo ayudarte a evaluar qué agente se adaptaría mejor a tu empresa?</h1>
-                        <p class="text-md text-gray-200">Puedo resolver sus dudas, darle ideas sobre agentes, agendarle una reunión... y a veces, ¡llevarle una sorpresa!</p>
+                        <h1 class="text-4xl md:text-5xl font-bold leading-tight mt-6">
+                            ¿Puedo ayudarte a evaluar qué agente se adaptaría mejor a tu empresa?
+                        </h1>
+                        <p class="text-md text-gray-200">
+                            Puedo resolver sus dudas, darle ideas sobre agentes, agendarle una reunión... y a veces, ¡llevarle una sorpresa!
+                        </p>
                         <div id="suggestion-buttons" class="flex flex-wrap justify-center gap-2 pt-4 max-w-2xl mx-auto">
                             <button class="bg-black/20 backdrop-blur-sm hover:bg-black/30 rounded-full px-4 py-2 text-sm transition-colors">Agendar una demostración</button>
                             <button class="bg-black/20 backdrop-blur-sm hover:bg-black/30 rounded-full px-4 py-2 text-sm transition-colors">Preguntar sobre los precios</button>
@@ -97,7 +191,8 @@
                             <button class="bg-black/20 backdrop-blur-sm hover:bg-black/30 rounded-full px-4 py-2 text-sm transition-colors">Contactar a ventas</button>
                         </div>
                     </div>
-                    <div id="chat-container" class="hidden w-full h-full flex-col gap-4 overflow-y-auto"></div>
+                    <div id="chat-container" class="hidden w-full h-full flex-col gap-4 overflow-y-auto">
+                        </div>
                 </main>
                 <footer class="flex-shrink-0">
                     <div class="relative max-w-2xl mx-auto w-full">
@@ -136,37 +231,44 @@
             </div>
         `;
 
+        // Inyecta el contenido del widget en el div de destino.
         targetDiv.innerHTML = widgetContent;
 
-        const mainContainer = targetDiv.querySelector('#main-container');
-        const initialView = targetDiv.querySelector('#initial-view');
-        const chatContainer = targetDiv.querySelector('#chat-container');
-        const bannerText = targetDiv.querySelector('#banner-text');
-        const resetChatContainer = targetDiv.querySelector('#reset-chat-container');
-        const resetChatButton = targetDiv.querySelector('#reset-chat-button');
-        const textarea = targetDiv.querySelector('#prompt-textarea');
-        const micButton = targetDiv.querySelector('#mic-button');
-        const sendButton = targetDiv.querySelector('#send-button');
-        const micIcon = targetDiv.querySelector('#mic-icon');
-        const stopIcon = targetDiv.querySelector('#stop-icon');
-        const uploadButton = targetDiv.querySelector('#upload-button');
-        const fileInput = targetDiv.querySelector('#file-input');
-        const filePreviewContainer = targetDiv.querySelector('#file-preview-container');
-        const inputWrapper = targetDiv.querySelector('#input-wrapper');
-        const voiceVisualizer = targetDiv.querySelector('#voice-visualizer');
-        const recordingTimer = targetDiv.querySelector('#recording-timer');
-        const visualizerBarsContainer = voiceVisualizer.querySelector('.gap-0\\.5');
-        const suggestionButtons = targetDiv.querySelectorAll('#suggestion-buttons button');
+        // --- INICIO DE LA LÓGICA ORIGINAL DEL WIDGET ---
+        // (Todo el código del <script> original, ahora aplicado a los elementos recién creados)
 
+        const mainContainer = document.getElementById('main-container');
+        const contentArea = document.getElementById('content-area');
+        const initialView = document.getElementById('initial-view');
+        const chatContainer = document.getElementById('chat-container');
+        const bannerText = document.getElementById('banner-text');
+        const resetChatContainer = document.getElementById('reset-chat-container');
+        const resetChatButton = document.getElementById('reset-chat-button');
+        const textarea = document.getElementById('prompt-textarea');
+        const micButton = document.getElementById('mic-button');
+        const sendButton = document.getElementById('send-button');
+        const micIcon = document.getElementById('mic-icon');
+        const stopIcon = document.getElementById('stop-icon');
+        const uploadButton = document.getElementById('upload-button');
+        const fileInput = document.getElementById('file-input');
+        const filePreviewContainer = document.getElementById('file-preview-container');
+        const inputWrapper = document.getElementById('input-wrapper');
+        const voiceVisualizer = document.getElementById('voice-visualizer');
+        const recordingTimer = document.getElementById('recording-timer');
+        const visualizerBarsContainer = voiceVisualizer.querySelector('.gap-0\\.5');
+        const promptContainer = document.getElementById('prompt-container');
+        const suggestionButtons = document.querySelectorAll('#suggestion-buttons button');
+        
         let isChatStarted = false;
         let isRecording = false;
         let recognition = null;
         let timerInterval = null;
         let fileStore = [];
-        let audioCtx;
-        let textBeforeRecording = '';
-        let isWaitingForResponse = false;
+        let audioCtx; // Para el sonido de notificación
+        let textBeforeRecording = ''; // Para guardar el texto antes de grabar
+        let isWaitingForResponse = false; // Estado para controlar la espera de respuesta
 
+        // --- CONFIGURACIÓN Y VARIABLES ---
         const webhookUrl = 'https://n8n.agentbooster.ai/webhook/agent-boo-web-982925e5232096r01r012r126327te73';
         let userId = localStorage.getItem('boo_user_id');
         if (!userId) {
@@ -179,7 +281,8 @@
             recognition = new SpeechRecognition();
             recognition.lang = 'es-ES';
             recognition.interimResults = true;
-            recognition.continuous = true;
+            recognition.continuous = true; 
+
             recognition.onresult = (event) => {
                 let fullTranscript = '';
                 for (let i = 0; i < event.results.length; i++) {
@@ -199,6 +302,7 @@
             };
         }
 
+        // --- FUNCIONES DE MANEJO DE ESTADO DE UI ---
         const disableInputs = () => {
             textarea.disabled = true;
             sendButton.disabled = true;
@@ -222,6 +326,7 @@
             updateButtonState();
         };
 
+        // --- FUNCIONES AUXILIARES ---
         const autoResize = () => {
             textarea.style.height = 'auto';
             textarea.style.height = (textarea.scrollHeight) + 'px';
@@ -254,7 +359,7 @@
             updateButtonState();
             autoResize();
         };
-        
+
         const markdownToHtml = (text) => {
             let safeText = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
             safeText = safeText.replace(/^(?:\*\s(.*)\n?)+/gm, (match) => {
@@ -269,7 +374,7 @@
             safeText = safeText.replace(/<br><ul/g, '<ul').replace(/<\/ul><br>/g, '</ul>');
             return safeText;
         };
-        
+
         const displayUserMessage = (message, file) => {
             startChatView();
             const userMessageContainer = document.createElement('div');
@@ -295,7 +400,7 @@
         };
         
         const typeBooMessage = (message) => {
-            const indicator = targetDiv.querySelector('#typing-indicator');
+            const indicator = document.getElementById('typing-indicator');
             if (indicator) indicator.remove();
             
             playNotificationSound();
@@ -312,7 +417,7 @@
             chatContainer.appendChild(messageContainer);
             
             let i = 0;
-            const speed = 1;
+            const speed = 1; // Velocidad de escritura en ms (reducida para ser más rápida)
             messageBubble.innerHTML = ''; 
 
             const type = () => {
@@ -327,9 +432,19 @@
                     const copyButton = document.createElement('button');
                     copyButton.className = 'absolute left-1 top-full mt-1 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-opacity opacity-0 group-hover:opacity-100 focus:opacity-100';
                     copyButton.title = 'Copiar mensaje';
-                    copyButton.innerHTML = `<svg class="copy-icon h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><svg class="check-icon h-3.5 w-3.5 hidden text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    copyButton.innerHTML = `
+                        <svg class="copy-icon h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>
+                        <svg class="check-icon h-3.5 w-3.5 hidden text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    `;
                     copyButton.addEventListener('click', () => {
-                        navigator.clipboard.writeText(messageBubble.innerText).then(() => {
+                        const textToCopy = messageBubble.innerText;
+                        const tempTextArea = document.createElement('textarea');
+                        tempTextArea.style.position = 'absolute'; tempTextArea.style.left = '-9999px';
+                        tempTextArea.value = textToCopy;
+                        document.body.appendChild(tempTextArea);
+                        tempTextArea.select();
+                        try {
+                            document.execCommand('copy');
                             const copyIcon = copyButton.querySelector('.copy-icon');
                             const checkIcon = copyButton.querySelector('.check-icon');
                             copyIcon.classList.add('hidden');
@@ -338,7 +453,8 @@
                                 copyIcon.classList.remove('hidden');
                                 checkIcon.classList.add('hidden');
                             }, 2000);
-                        }).catch(err => console.error('No se pudo copiar el texto:', err));
+                        } catch (err) { console.error('No se pudo copiar el texto:', err); }
+                        document.body.removeChild(tempTextArea);
                     });
                     messageWrapper.appendChild(copyButton);
                     
@@ -353,7 +469,12 @@
             const indicatorContainer = document.createElement('div');
             indicatorContainer.id = 'typing-indicator';
             indicatorContainer.className = 'w-full flex justify-start';
-            indicatorContainer.innerHTML = `<div class="flex items-center gap-2 max-w-md md:max-w-lg rounded-2xl p-3 text-sm boo-message"><img class="w-6 h-6 rounded-full" src="https://res.cloudinary.com/dsdnpstgi/image/upload/v1756503469/Boo_Mastermind_-_vasyl_pavlyuchok_40606_httpss.mj.runDaU8K48LteU_close-up_port_3b5e9292-ef3c-4c7f-93c8-c1a99da3780e_3_skkffe.png" alt="Boo Avatar"><div class="typing-indicator-dot" style="animation-delay: 0s;"></div></div>`;
+            indicatorContainer.innerHTML = `
+                <div class="flex items-center gap-2 max-w-md md:max-w-lg rounded-2xl p-3 text-sm boo-message">
+                    <img class="w-6 h-6 rounded-full" src="https://res.cloudinary.com/dsdnpstgi/image/upload/v1756503469/Boo_Mastermind_-_vasyl_pavlyuchok_40606_httpss.mj.runDaU8K48LteU_close-up_port_3b5e9292-ef3c-4c7f-93c8-c1a99da3780e_3_skkffe.png" alt="Boo Avatar">
+                    <div class="typing-indicator-dot" style="animation-delay: 0s;"></div>
+                </div>
+            `;
             chatContainer.appendChild(indicatorContainer);
             chatContainer.scrollTop = chatContainer.scrollHeight;
         };
@@ -364,7 +485,11 @@
                 reader.readAsDataURL(file);
                 reader.onload = () => {
                     const base64String = reader.result.split(',')[1];
-                    resolve({ fileName: file.name, fileType: file.type, fileContent: base64String });
+                    resolve({
+                        fileName: file.name,
+                        fileType: file.type,
+                        fileContent: base64String
+                    });
                 };
                 reader.onerror = error => reject(error);
             });
@@ -397,44 +522,65 @@
         
         const handleSubmit = async () => {
             if (isWaitingForResponse) return;
+
             const message = textarea.value.trim();
             const file = fileStore.length > 0 ? fileStore[0] : null;
+
             if (!message && !file) return;
+
             isWaitingForResponse = true;
+
             displayUserMessage(message, file);
+            
             const payload = { userId, message };
+
             if (file) {
                 try {
-                    payload.files = [await fileToBase64(file)];
+                    const fileData = await fileToBase64(file);
+                    payload.files = [fileData];
                 } catch (error) {
                     console.error("Error al convertir archivo a Base64:", error);
                     typeBooMessage("Perdona, hubo un error al procesar el archivo.");
                     return;
                 }
             }
+            
             textarea.value = "";
             filePreviewContainer.innerHTML = '';
             fileStore = [];
             autoResize();
             disableInputs();
             showTypingIndicator();
+
             try {
                 const response = await fetch(webhookUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+
                 if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+                
                 const textResponse = await response.text();
+
                 if (!textResponse || textResponse.trim() === '') {
                     typeBooMessage("Perdona ha ocurrido un error.");
                     return;
                 }
+
                 try {
                     const data = JSON.parse(textResponse);
-                    let booMessage = data.output || data.text || data.reply || (Array.isArray(data) && data.length > 0 && (data[0].output || data[0].text)) || null;
+                    let booMessage = null;
+
+                    if (Array.isArray(data) && data.length > 0 && data[0].output) booMessage = data[0].output; 
+                    else if (data && data.output) booMessage = data.output;
+                    else if (Array.isArray(data) && data.length > 0 && data[0].text) booMessage = data[0].text;
+                    else if (data && data.text) booMessage = data.text;
+                    else if (data && data.reply) booMessage = data.reply;
+                    
                     if (booMessage && booMessage.trim() !== '') typeBooMessage(booMessage);
                     else typeBooMessage("Perdona ha ocurrido un error.");
+
                 } catch (jsonError) {
                     typeBooMessage(textResponse);
                 }
@@ -444,7 +590,7 @@
             }
         };
         
-        const startRecording = () => {
+         const startRecording = () => {
             if (!recognition) { alert("El reconocimiento de voz no es compatible con este navegador."); return; }
             if (isRecording) return;
             textBeforeRecording = textarea.value;
@@ -502,18 +648,33 @@
                 const extension = file.name.split('.').pop().toUpperCase();
                 fileIconHtml = `<div class="file-icon"><span class="text-white font-bold text-xs">${extension}</span></div>`;
             }
-            previewItem.innerHTML = `${fileIconHtml}<div class="file-info"><span class="file-name">${file.name}</span><span class="file-type">${file.type}</span></div><div class="remove-btn" data-index="0"><svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg></div>`;
+            previewItem.innerHTML = `
+                ${fileIconHtml}
+                <div class="file-info"><span class="file-name">${file.name}</span><span class="file-type">${file.type}</span></div>
+                <div class="remove-btn" data-index="0"><svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg></div>
+            `;
             filePreviewContainer.appendChild(previewItem);
             updateButtonState();
         };
 
-        textarea.addEventListener('input', () => { updateButtonState(); autoResize(); });
-        textarea.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); }});
+        // --- EVENT LISTENERS ---
+        textarea.addEventListener('input', () => {
+            updateButtonState();
+            autoResize();
+        });
+        textarea.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit();
+            }
+        });
+
         sendButton.addEventListener('click', handleSubmit);
         micButton.addEventListener('click', () => isRecording ? stopRecording() : startRecording());
         resetChatButton.addEventListener('click', resetChat);
         uploadButton.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+        
         filePreviewContainer.addEventListener('click', (e) => {
             const removeBtn = e.target.closest('.remove-btn');
             if (removeBtn) {
@@ -522,6 +683,7 @@
                 updateButtonState();
             }
         });
+
         suggestionButtons.forEach(button => {
             button.addEventListener('click', () => {
                 textarea.value = button.textContent;
@@ -529,10 +691,14 @@
             });
         });
 
+        // Init
         updateButtonState();
         autoResize();
+        
+        // --- FIN DE LA LÓGICA ORIGINAL DEL WIDGET ---
     }
 
+    // Asegurarse de que el DOM esté cargado antes de ejecutar el script.
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initializeBooWidget);
     } else {
