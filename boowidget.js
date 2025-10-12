@@ -4,17 +4,29 @@
     }
     window.booWidgetInitialized = true;
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const targetDivId = 'boo-ai-widget';
+    const targetDivId = 'boo-ai-widget';
+
+    function main() {
         const widgetContainer = document.getElementById(targetDivId);
 
         if (!widgetContainer) {
-            console.error(`Error: Contenedor #${targetDivId} no encontrado. El widget no puede cargar.`);
+            // Esta comprobación es una salvaguarda, pero runWhenReady ya se asegura de que exista.
+            console.error(`Error: Contenedor #${targetDivId} no encontrado.`);
             return;
         }
 
+        // --- ESTILOS PARA CENTRAR Y DIMENSIONAR ---
+        widgetContainer.style.display = 'block';
+        widgetContainer.style.width = '100%';
+        widgetContainer.style.maxWidth = '1000px';
+        widgetContainer.style.height = 'clamp(650px, 90vh, 1000px)';
+        widgetContainer.style.margin = '20px auto';
+        widgetContainer.style.borderRadius = '1.25rem';
+        widgetContainer.style.boxShadow = '0 25px 50px -12px rgb(0 0 0 / 0.25)';
+        widgetContainer.style.overflow = 'hidden';
+
         const widgetHTML = `
-            <div id="main-container" class="w-full max-w-6xl rounded-2xl shadow-2xl p-6 md:p-8 text-white relative overflow-hidden flex flex-col transition-all duration-500" style="background: radial-gradient(125% 125% at 50% 101%, rgba(245,87,2,1) 10.5%, rgba(245,120,2,1) 16%, rgba(245,140,2,1) 17.5%, rgba(245,170,100,1) 25%, rgba(238,174,202,1) 40%, rgba(202,179,214,1) 65%, rgba(148,201,233,1) 100%); height: 100vh;">
+            <div id="main-container" class="w-full h-full max-w-6xl rounded-2xl p-6 md:p-8 text-white relative overflow-hidden flex flex-col transition-all duration-500" style="background: radial-gradient(125% 125% at 50% 101%, rgba(245,87,2,1) 10.5%, rgba(245,120,2,1) 16%, rgba(245,140,2,1) 17.5%, rgba(245,170,100,1) 25%, rgba(238,174,202,1) 40%, rgba(202,179,214,1) 65%, rgba(148,201,233,1) 100%);">
                 <header class="flex-shrink-0 relative">
                     <div class="flex justify-center">
                         <div class="bg-black/20 backdrop-blur-sm rounded-full pl-2 pr-4 py-2 flex items-center gap-3 w-fit">
@@ -89,577 +101,51 @@
                 </footer>
             </div>
         `;
-
         const widgetCSS = `
-            #${targetDivId} {
-                font-family: 'Inter', sans-serif;
-            }
-            #${targetDivId} textarea::-webkit-scrollbar { width: 6px; }
-            #${targetDivId} textarea::-webkit-scrollbar-track { background: transparent; }
-            #${targetDivId} textarea::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 3px; }
-            #${targetDivId} textarea::-webkit-scrollbar-thumb:hover { background-color: #555555; }
-            #${targetDivId} .voice-visualizer-bar {
-                animation: pulse 1s infinite ease-in-out;
-            }
-            @keyframes pulse {
-                0%, 100% { transform: scaleY(0.2); }
-                50% { transform: scaleY(1); }
-            }
-            #${targetDivId} #file-preview-container {
-                display: flex;
-                overflow-x: auto;
-                overflow-y: hidden;
-                flex-wrap: nowrap;
-                padding-bottom: 8px;
-                scrollbar-width: thin;
-                scrollbar-color: #444444 transparent;
-            }
-            #${targetDivId} #file-preview-container::-webkit-scrollbar { height: 4px; }
-            #${targetDivId} #file-preview-container::-webkit-scrollbar-track { background: transparent; }
-            #${targetDivId} #file-preview-container::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 2px; }
-            #${targetDivId} .file-preview-item {
-                position: relative;
-                display: flex;
-                align-items: center;
-                background-color: #2E3033;
-                border-radius: 12px;
-                padding: 8px;
-                margin-right: 8px;
-                margin-top: 4px;
-                flex-shrink: 0;
-                width: 180px;
-            }
-            #${targetDivId} .file-preview-item .file-icon {
-                flex-shrink: 0;
-                width: 32px;
-                height: 32px;
-                border-radius: 8px;
-                background-color: #EF4444;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            #${targetDivId} .file-preview-item .file-info {
-                margin-left: 8px;
-                display: flex;
-                flex-direction: column;
-                overflow: hidden;
-                color: #E5E7EB;
-            }
-            #${targetDivId} .file-preview-item .file-name {
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                font-size: 0.875rem;
-                line-height: 1.25rem;
-            }
-            #${targetDivId} .file-preview-item .file-type {
-                font-size: 0.75rem;
-                line-height: 1rem;
-                color: #9CA3AF;
-            }
-            #${targetDivId} .file-preview-item .remove-btn {
-                position: absolute;
-                top: -4px;
-                right: -4px;
-                width: 16px;
-                height: 16px;
-                border-radius: 9999px;
-                background-color: #4B5563;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-            }
-            #${targetDivId} .file-preview-item img.preview-image {
-                width: 32px;
-                height: 32px;
-                border-radius: 8px;
-                object-fit: cover;
-                flex-shrink: 0;
-            }
-            #${targetDivId} #chat-container {
-                scrollbar-width: thin;
-                scrollbar-color: #444444 transparent;
-            }
-            #${targetDivId} #chat-container::-webkit-scrollbar { width: 6px; }
-            #${targetDivId} #chat-container::-webkit-scrollbar-track { background: transparent; }
-            #${targetDivId} #chat-container::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 3px; }
-            #${targetDivId} .user-message {
-                background-color: #373A40;
-                align-self: flex-end;
-                text-align: left;
-            }
-            #${targetDivId} .boo-message {
-                background-color: rgba(0, 0, 0, 0.15);
-                align-self: flex-start;
-                text-align: left;
-            }
-            #${targetDivId} .boo-message ul {
-                padding-left: 1.25rem;
-            }
-            #${targetDivId} .boo-message a {
-                color: #93C5FD;
-                text-decoration: underline;
-            }
-            #${targetDivId} .boo-message a:hover {
-                color: #BFDBFE;
-            }
-            #${targetDivId} .typing-indicator-dot {
-                animation: typing-pulse 1.4s infinite ease-in-out;
-                display: inline-block;
-                background-color: white;
-                width: 8px;
-                height: 8px;
-                border-radius: 50%;
-            }
-            @keyframes typing-pulse {
-                0%, 100% {
-                    transform: scale(0.8);
-                    opacity: 0.5;
-                }
-                50% {
-                    transform: scale(1.2);
-                    opacity: 1;
-                }
-            }
+            #main-container { font-family: 'Inter', sans-serif; height: 100% !important; }
+            textarea::-webkit-scrollbar { width: 6px; } textarea::-webkit-scrollbar-track { background: transparent; } textarea::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 3px; } textarea::-webkit-scrollbar-thumb:hover { background-color: #555555; }
+            .voice-visualizer-bar { animation: pulse 1s infinite ease-in-out; } @keyframes pulse { 0%, 100% { transform: scaleY(0.2); } 50% { transform: scaleY(1); } }
+            #file-preview-container { display: flex; overflow-x: auto; overflow-y: hidden; flex-wrap: nowrap; padding-bottom: 8px; scrollbar-width: thin; scrollbar-color: #444444 transparent; } #file-preview-container::-webkit-scrollbar { height: 4px; } #file-preview-container::-webkit-scrollbar-track { background: transparent; } #file-preview-container::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 2px; }
+            .file-preview-item { position: relative; display: flex; align-items: center; background-color: #2E3033; border-radius: 12px; padding: 8px; margin-right: 8px; margin-top: 4px; flex-shrink: 0; width: 180px; } .file-preview-item .file-icon { flex-shrink: 0; width: 32px; height: 32px; border-radius: 8px; background-color: #EF4444; display: flex; align-items: center; justify-content: center; } .file-preview-item .file-info { margin-left: 8px; display: flex; flex-direction: column; overflow: hidden; color: #E5E7EB; } .file-preview-item .file-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.875rem; line-height: 1.25rem; } .file-preview-item .file-type { font-size: 0.75rem; line-height: 1rem; color: #9CA3AF; } .file-preview-item .remove-btn { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; border-radius: 9999px; background-color: #4B5563; display: flex; align-items: center; justify-content: center; cursor: pointer; } .file-preview-item img.preview-image { width: 32px; height: 32px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+            #chat-container { scrollbar-width: thin; scrollbar-color: #444444 transparent; } #chat-container::-webkit-scrollbar { width: 6px; } #chat-container::-webkit-scrollbar-track { background: transparent; } #chat-container::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 3px; }
+            .user-message { background-color: #373A40; align-self: flex-end; text-align: left; } .boo-message { background-color: rgba(0, 0, 0, 0.15); align-self: flex-start; text-align: left; } .boo-message ul { padding-left: 1.25rem; } .boo-message a { color: #93C5FD; text-decoration: underline; } .boo-message a:hover { color: #BFDBFE; }
+            .typing-indicator-dot { animation: typing-pulse 1.4s infinite ease-in-out; display: inline-block; background-color: white; width: 8px; height: 8px; border-radius: 50%; } @keyframes typing-pulse { 0%, 100% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } }
         `;
         
         function initializeBooWidget() {
             if (window.booWidgetLogicInitialized) return;
             window.booWidgetLogicInitialized = true;
-
-            const mainContainer = document.getElementById('main-container');
-            const contentArea = document.getElementById('content-area');
-            const initialView = document.getElementById('initial-view');
-            const chatContainer = document.getElementById('chat-container');
-            const bannerText = document.getElementById('banner-text');
-            const resetChatContainer = document.getElementById('reset-chat-container');
-            const resetChatButton = document.getElementById('reset-chat-button');
-            const textarea = document.getElementById('prompt-textarea');
-            const micButton = document.getElementById('mic-button');
-            const sendButton = document.getElementById('send-button');
-            const micIcon = document.getElementById('mic-icon');
-            const stopIcon = document.getElementById('stop-icon');
-            const uploadButton = document.getElementById('upload-button');
-            const fileInput = document.getElementById('file-input');
-            const filePreviewContainer = document.getElementById('file-preview-container');
-            const inputWrapper = document.getElementById('input-wrapper');
-            const voiceVisualizer = document.getElementById('voice-visualizer');
-            const recordingTimer = document.getElementById('recording-timer');
-            const visualizerBarsContainer = voiceVisualizer.querySelector('.gap-0\\.5');
-            const promptContainer = document.getElementById('prompt-container');
-            const suggestionButtons = document.querySelectorAll('#suggestion-buttons button');
-            
-            let isChatStarted = false;
-            let isRecording = false;
-            let recognition = null;
-            let timerInterval = null;
-            let fileStore = [];
-            let audioCtx;
-            let textBeforeRecording = '';
-            let isWaitingForResponse = false;
-
+            const mainContainer = document.getElementById('main-container'); const initialView = document.getElementById('initial-view'); const chatContainer = document.getElementById('chat-container'); const bannerText = document.getElementById('banner-text'); const resetChatContainer = document.getElementById('reset-chat-container'); const resetChatButton = document.getElementById('reset-chat-button'); const textarea = document.getElementById('prompt-textarea'); const micButton = document.getElementById('mic-button'); const sendButton = document.getElementById('send-button'); const micIcon = document.getElementById('mic-icon'); const stopIcon = document.getElementById('stop-icon'); const uploadButton = document.getElementById('upload-button'); const fileInput = document.getElementById('file-input'); const filePreviewContainer = document.getElementById('file-preview-container'); const inputWrapper = document.getElementById('input-wrapper'); const voiceVisualizer = document.getElementById('voice-visualizer'); const recordingTimer = document.getElementById('recording-timer'); const visualizerBarsContainer = voiceVisualizer.querySelector('.gap-0\\.5'); const suggestionButtons = document.querySelectorAll('#suggestion-buttons button');
+            let isChatStarted = false; let isRecording = false; let recognition = null; let timerInterval = null; let fileStore = []; let audioCtx; let textBeforeRecording = ''; let isWaitingForResponse = false;
             const webhookUrl = 'https://n8n.agentbooster.ai/webhook/agent-boo-web-982925e5232096r01r012r126327te73';
-            let userId = localStorage.getItem('boo_user_id');
-            if (!userId) {
-                userId = crypto.randomUUID();
-                localStorage.setItem('boo_user_id', userId);
-            }
+            let userId = localStorage.getItem('boo_user_id'); if (!userId) { userId = crypto.randomUUID(); localStorage.setItem('boo_user_id', userId); }
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; if (SpeechRecognition) { recognition = new SpeechRecognition(); recognition.lang = 'es-ES'; recognition.interimResults = true; recognition.continuous = true; recognition.onresult = (event) => { let fullTranscript = ''; for (let i = 0; i < event.results.length; i++) { fullTranscript += event.results[i][0].transcript; } const separator = textBeforeRecording.trim().length > 0 ? ' ' : ''; textarea.value = textBeforeRecording + separator + fullTranscript; updateButtonState(); autoResize(); }; recognition.onerror = () => { if (isRecording) stopRecording(); }; recognition.onend = () => { if (isRecording) stopRecording(); }; }
+            const disableInputs = () => { textarea.disabled = true; sendButton.disabled = true; uploadButton.disabled = true; micButton.disabled = true; textarea.placeholder = "Boo está escribiendo..."; sendButton.classList.add('opacity-50', 'cursor-not-allowed'); uploadButton.classList.add('opacity-50', 'cursor-not-allowed'); micButton.classList.add('opacity-50', 'cursor-not-allowed'); };
+            const enableInputs = () => { textarea.disabled = false; sendButton.disabled = false; uploadButton.disabled = false; micButton.disabled = false; textarea.placeholder = "Pregúntale a Boo"; sendButton.classList.remove('opacity-50', 'cursor-not-allowed'); uploadButton.classList.remove('opacity-50', 'cursor-not-allowed'); micButton.classList.remove('opacity-50', 'cursor-not-allowed'); updateButtonState(); };
+            const autoResize = () => { textarea.style.height = 'auto'; textarea.style.height = (textarea.scrollHeight) + 'px'; };
+            const startChatView = () => { if (isChatStarted) return; isChatStarted = true; initialView.classList.add('opacity-0'); setTimeout(() => { initialView.classList.add('hidden'); chatContainer.classList.remove('hidden'); chatContainer.classList.add('flex'); resetChatContainer.classList.remove('hidden'); bannerText.textContent = 'Avísame si necesitas reservar una llamada'; }, 500); };
+            const resetChat = () => { isChatStarted = false; chatContainer.innerHTML = ''; initialView.classList.remove('hidden', 'opacity-0'); chatContainer.classList.add('hidden'); chatContainer.classList.remove('flex'); resetChatContainer.classList.add('hidden'); bannerText.textContent = 'Aquí puedes hablar conmigo.'; textarea.value = ''; fileStore = []; filePreviewContainer.innerHTML = ''; updateButtonState(); autoResize(); };
+            const markdownToHtml = (text) => { let safeText = text.replace(/</g, '&lt;').replace(/>/g, '&gt;'); safeText = safeText.replace(/^(?:\*\s(.*)\n?)+/gm, (match) => `<ul class="list-disc space-y-1">${match.trim().split('\n').map(item => `<li>${item.substring(2)}</li>`).join('')}</ul>`); safeText = safeText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); safeText = safeText.replace(/\[(.*?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'); const urlRegex = /(?<!href="|href='|">)(https?:\/\/[^\s<]+)/g; safeText = safeText.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'); return safeText.replace(/\n/g, '<br>').replace(/<br><ul/g, '<ul').replace(/<\/ul><br>/g, '</ul>'); };
+            const displayUserMessage = (message, file) => { startChatView(); const userMessageContainer = document.createElement('div'); userMessageContainer.className = 'w-full flex justify-end'; const messageGroup = document.createElement('div'); messageGroup.className = 'flex flex-col items-end gap-1.5'; if (file) { const fileBubble = document.createElement('div'); fileBubble.className = 'max-w-md md:max-w-lg rounded-2xl p-3 text-sm user-message'; fileBubble.textContent = `Archivo adjunto: ${file.name}`; messageGroup.appendChild(fileBubble); } if (message && message.length > 0) { const textBubble = document.createElement('div'); textBubble.className = 'max-w-md md:max-w-lg rounded-2xl p-3 text-sm user-message'; textBubble.textContent = message; messageGroup.appendChild(textBubble); } userMessageContainer.appendChild(messageGroup); chatContainer.appendChild(userMessageContainer); chatContainer.scrollTop = chatContainer.scrollHeight; };
+            const typeBooMessage = (message) => { const indicator = document.getElementById('typing-indicator'); if (indicator) indicator.remove(); playNotificationSound(); const messageContainer = document.createElement('div'); messageContainer.className = `w-full flex justify-start`; const messageBubble = document.createElement('div'); messageBubble.className = `max-w-md md:max-w-lg rounded-2xl p-3 text-sm boo-message`; const messageWrapper = document.createElement('div'); messageWrapper.className = 'relative group mb-8'; messageWrapper.appendChild(messageBubble); messageContainer.appendChild(messageWrapper); chatContainer.appendChild(messageContainer); let i = 0; const speed = 1; messageBubble.innerHTML = ''; const type = () => { if (i < message.length) { messageBubble.innerHTML += message.charAt(i) === '\n' ? '<br>' : message.charAt(i); chatContainer.scrollTop = chatContainer.scrollHeight; i++; setTimeout(type, speed); } else { messageBubble.innerHTML = markdownToHtml(message); const copyButton = document.createElement('button'); copyButton.className = 'absolute left-1 top-full mt-1 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-opacity opacity-0 group-hover:opacity-100 focus:opacity-100'; copyButton.title = 'Copiar mensaje'; copyButton.innerHTML = `<svg class="copy-icon h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><svg class="check-icon h-3.5 w-3.5 hidden text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`; copyButton.addEventListener('click', () => { navigator.clipboard.writeText(messageBubble.innerText).then(() => { const copyIcon = copyButton.querySelector('.copy-icon'); const checkIcon = copyButton.querySelector('.check-icon'); copyIcon.classList.add('hidden'); checkIcon.classList.remove('hidden'); setTimeout(() => { copyIcon.classList.remove('hidden'); checkIcon.classList.add('hidden'); }, 2000); }); }); messageWrapper.appendChild(copyButton); isWaitingForResponse = false; enableInputs(); } }; type(); };
+            const showTypingIndicator = () => { const indicatorContainer = document.createElement('div'); indicatorContainer.id = 'typing-indicator'; indicatorContainer.className = 'w-full flex justify-start'; indicatorContainer.innerHTML = `<div class="flex items-center gap-2 max-w-md md:max-w-lg rounded-2xl p-3 text-sm boo-message"><img class="w-6 h-6 rounded-full" src="https://res.cloudinary.com/dsdnpstgi/image/upload/v1756503469/Boo_Mastermind_-_vasyl_pavlyuchok_40606_httpss.mj.runDaU8K48LteU_close-up_port_3b5e9292-ef3c-4c7f-93c8-c1a99da3780e_3_skkffe.png" alt="Boo Avatar"><div class="typing-indicator-dot" style="animation-delay: 0s;"></div></div>`; chatContainer.appendChild(indicatorContainer); chatContainer.scrollTop = chatContainer.scrollHeight; };
+            const fileToBase64 = (file) => { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve({ fileName: file.name, fileType: file.type, fileContent: reader.result.split(',')[1] }); reader.onerror = error => reject(error); }); };
+            const updateButtonState = () => { if (isRecording) { sendButton.classList.add('hidden'); return; } const hasMessage = textarea.value.trim().length > 0; const hasFiles = fileStore.length > 0; if (hasMessage || hasFiles) { sendButton.classList.remove('hidden'); } else { sendButton.classList.add('hidden'); } };
+            const playNotificationSound = () => { try { if (!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)(); if (audioCtx.state === 'suspended') audioCtx.resume(); const oscillator = audioCtx.createOscillator(); const gainNode = audioCtx.createGain(); oscillator.connect(gainNode); gainNode.connect(audioCtx.destination); oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.4); oscillator.start(audioCtx.currentTime); oscillator.stop(audioCtx.currentTime + 0.4); } catch (e) {} };
+            const handleSubmit = async () => { if (isWaitingForResponse) return; const message = textarea.value.trim(); const file = fileStore.length > 0 ? fileStore[0] : null; if (!message && !file) return; isWaitingForResponse = true; displayUserMessage(message, file); const payload = { userId, message }; if (file) { try { payload.files = [await fileToBase64(file)]; } catch (error) { typeBooMessage("Perdona, hubo un error al procesar el archivo."); return; } } textarea.value = ""; filePreviewContainer.innerHTML = ''; fileStore = []; autoResize(); disableInputs(); showTypingIndicator(); try { const response = await fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); if (!response.ok) throw new Error(`Error HTTP: ${response.status}`); const textResponse = await response.text(); if (!textResponse || textResponse.trim() === '') { typeBooMessage("Perdona ha ocurrido un error."); return; } try { const data = JSON.parse(textResponse); let booMessage = null; if (Array.isArray(data) && data.length > 0 && data[0].output) booMessage = data[0].output; else if (data && data.output) booMessage = data.output; else if (Array.isArray(data) && data.length > 0 && data[0].text) booMessage = data[0].text; else if (data && data.text) booMessage = data.text; else if (data && data.reply) booMessage = data.reply; if (booMessage && booMessage.trim() !== '') typeBooMessage(booMessage); else typeBooMessage("Perdona ha ocurrido un error."); } catch (jsonError) { typeBooMessage(textResponse); } } catch (error) { typeBooMessage("Perdona ha ocurrido un error."); } };
+            const startRecording = () => { if (!recognition) { alert("El reconocimiento de voz no es compatible con este navegador."); return; } if (isRecording) return; textBeforeRecording = textarea.value; isRecording = true; updateButtonState(); micIcon.classList.add('hidden'); stopIcon.classList.remove('hidden'); micButton.classList.add('bg-red-500/20', 'text-red-500'); inputWrapper.classList.add('hidden'); voiceVisualizer.classList.remove('hidden'); voiceVisualizer.classList.add('flex'); let seconds = 0; recordingTimer.textContent = '00:00'; timerInterval = setInterval(() => { seconds++; const min = String(Math.floor(seconds / 60)).padStart(2, '0'); const sec = String(seconds % 60).padStart(2, '0'); recordingTimer.textContent = `${min}:${sec}`; }, 1000); visualizerBarsContainer.innerHTML = Array(40).fill('<div class="w-1 bg-white/50 rounded-full voice-visualizer-bar"></div>').join(''); recognition.start(); };
+            const stopRecording = () => { if (!isRecording) return; isRecording = false; micIcon.classList.remove('hidden'); stopIcon.classList.add('hidden'); micButton.classList.remove('bg-red-500/20', 'text-red-500'); inputWrapper.classList.remove('hidden'); voiceVisualizer.classList.add('hidden'); voiceVisualizer.classList.remove('flex'); clearInterval(timerInterval); recognition.stop(); updateButtonState(); };
+            const handleFiles = (files) => { if (files.length === 0) return; fileStore = [files[0]]; filePreviewContainer.innerHTML = ''; const file = fileStore[0]; const reader = new FileReader(); const previewItem = document.createElement('div'); previewItem.className = 'file-preview-item'; let fileIconHtml; if (file.type.startsWith('image/')) { reader.onload = e => { const imgElement = previewItem.querySelector('.file-icon-placeholder'); if (imgElement) imgElement.innerHTML = `<img src="${e.target.result}" class="preview-image">`; }; reader.readAsDataURL(file); fileIconHtml = `<div class="file-icon file-icon-placeholder"></div>`; } else { const extension = file.name.split('.').pop().toUpperCase(); fileIconHtml = `<div class="file-icon"><span class="text-white font-bold text-xs">${extension}</span></div>`; } previewItem.innerHTML = `${fileIconHtml}<div class="file-info"><span class="file-name">${file.name}</span><span class="file-type">${file.type}</span></div><div class="remove-btn" data-index="0"><svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg></div>`; filePreviewContainer.appendChild(previewItem); updateButtonState(); };
 
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (SpeechRecognition) {
-                recognition = new SpeechRecognition();
-                recognition.lang = 'es-ES';
-                recognition.interimResults = true;
-                recognition.continuous = true;
-                recognition.onresult = (event) => {
-                    let fullTranscript = '';
-                    for (let i = 0; i < event.results.length; i++) {
-                        fullTranscript += event.results[i][0].transcript;
-                    }
-                    const separator = textBeforeRecording.trim().length > 0 ? ' ' : '';
-                    textarea.value = textBeforeRecording + separator + fullTranscript;
-                    updateButtonState();
-                    autoResize();
-                };
-                recognition.onerror = (event) => {
-                    console.error('Error en el reconocimiento de voz:', event.error);
-                    if (isRecording) stopRecording();
-                };
-                recognition.onend = () => {
-                    if (isRecording) stopRecording();
-                };
-            }
-
-            const disableInputs = () => {
-                textarea.disabled = true;
-                sendButton.disabled = true;
-                uploadButton.disabled = true;
-                micButton.disabled = true;
-                textarea.placeholder = "Boo está escribiendo...";
-                sendButton.classList.add('opacity-50', 'cursor-not-allowed');
-                uploadButton.classList.add('opacity-50', 'cursor-not-allowed');
-                micButton.classList.add('opacity-50', 'cursor-not-allowed');
-            };
-
-            const enableInputs = () => {
-                textarea.disabled = false;
-                sendButton.disabled = false;
-                uploadButton.disabled = false;
-                micButton.disabled = false;
-                textarea.placeholder = "Pregúntale a Boo";
-                sendButton.classList.remove('opacity-50', 'cursor-not-allowed');
-                uploadButton.classList.remove('opacity-50', 'cursor-not-allowed');
-                micButton.classList.remove('opacity-50', 'cursor-not-allowed');
-                updateButtonState();
-            };
-
-            const autoResize = () => {
-                textarea.style.height = 'auto';
-                textarea.style.height = (textarea.scrollHeight) + 'px';
-            };
-
-            const startChatView = () => {
-                if (isChatStarted) return;
-                isChatStarted = true;
-                initialView.classList.add('opacity-0');
-                setTimeout(() => {
-                    initialView.classList.add('hidden');
-                    chatContainer.classList.remove('hidden');
-                    chatContainer.classList.add('flex');
-                    resetChatContainer.classList.remove('hidden');
-                    bannerText.textContent = 'Avísame si necesitas reservar una llamada';
-                }, 500);
-            };
-
-            const resetChat = () => {
-                isChatStarted = false;
-                chatContainer.innerHTML = '';
-                initialView.classList.remove('hidden', 'opacity-0');
-                chatContainer.classList.add('hidden');
-                chatContainer.classList.remove('flex');
-                resetChatContainer.classList.add('hidden');
-                bannerText.textContent = 'Aquí puedes hablar conmigo.';
-                textarea.value = '';
-                fileStore = [];
-                filePreviewContainer.innerHTML = '';
-                updateButtonState();
-                autoResize();
-            };
-
-            const markdownToHtml = (text) => {
-                let safeText = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                safeText = safeText.replace(/^(?:\*\s(.*)\n?)+/gm, (match) => {
-                    const items = match.trim().split('\n').map(item => `<li>${item.substring(2)}</li>`).join('');
-                    return `<ul class="list-disc space-y-1">${items}</ul>`;
-                });
-                safeText = safeText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                safeText = safeText.replace(/\[(.*?)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-                const urlRegex = /(?<!href="|href='|">)(https?:\/\/[^\s<]+)/g;
-                safeText = safeText.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
-                safeText = safeText.replace(/\n/g, '<br>');
-                safeText = safeText.replace(/<br><ul/g, '<ul').replace(/<\/ul><br>/g, '</ul>');
-                return safeText;
-            };
-
-            const displayUserMessage = (message, file) => {
-                startChatView();
-                const userMessageContainer = document.createElement('div');
-                userMessageContainer.className = 'w-full flex justify-end';
-                const messageGroup = document.createElement('div');
-                messageGroup.className = 'flex flex-col items-end gap-1.5';
-                if (file) {
-                    const fileBubble = document.createElement('div');
-                    fileBubble.className = 'max-w-md md:max-w-lg rounded-2xl p-3 text-sm user-message';
-                    fileBubble.textContent = `Archivo adjunto: ${file.name}`;
-                    messageGroup.appendChild(fileBubble);
-                }
-                if (message && message.length > 0) {
-                    const textBubble = document.createElement('div');
-                    textBubble.className = 'max-w-md md:max-w-lg rounded-2xl p-3 text-sm user-message';
-                    textBubble.textContent = message;
-                    messageGroup.appendChild(textBubble);
-                }
-                userMessageContainer.appendChild(messageGroup);
-                chatContainer.appendChild(userMessageContainer);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            };
-
-            const typeBooMessage = (message) => {
-                const indicator = document.getElementById('typing-indicator');
-                if (indicator) indicator.remove();
-                playNotificationSound();
-                const messageContainer = document.createElement('div');
-                messageContainer.className = `w-full flex justify-start`;
-                const messageBubble = document.createElement('div');
-                messageBubble.className = `max-w-md md:max-w-lg rounded-2xl p-3 text-sm boo-message`;
-                const messageWrapper = document.createElement('div');
-                messageWrapper.className = 'relative group mb-8';
-                messageWrapper.appendChild(messageBubble);
-                messageContainer.appendChild(messageWrapper);
-                chatContainer.appendChild(messageContainer);
-                let i = 0;
-                const speed = 1;
-                messageBubble.innerHTML = '';
-                const type = () => {
-                    if (i < message.length) {
-                        const char = message.charAt(i);
-                        messageBubble.innerHTML += char === '\n' ? '<br>' : char;
-                        chatContainer.scrollTop = chatContainer.scrollHeight;
-                        i++;
-                        setTimeout(type, speed);
-                    } else {
-                        messageBubble.innerHTML = markdownToHtml(message);
-                        const copyButton = document.createElement('button');
-                        copyButton.className = 'absolute left-1 top-full mt-1 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-opacity opacity-0 group-hover:opacity-100 focus:opacity-100';
-                        copyButton.title = 'Copiar mensaje';
-                        copyButton.innerHTML = `<svg class="copy-icon h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg><svg class="check-icon h-3.5 w-3.5 hidden text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
-                        copyButton.addEventListener('click', () => {
-                            const textToCopy = messageBubble.innerText;
-                            const tempTextArea = document.createElement('textarea');
-                            tempTextArea.style.position = 'absolute';
-                            tempTextArea.style.left = '-9999px';
-                            tempTextArea.value = textToCopy;
-                            document.body.appendChild(tempTextArea);
-                            tempTextArea.select();
-                            try {
-                                document.execCommand('copy');
-                                const copyIcon = copyButton.querySelector('.copy-icon');
-                                const checkIcon = copyButton.querySelector('.check-icon');
-                                copyIcon.classList.add('hidden');
-                                checkIcon.classList.remove('hidden');
-                                setTimeout(() => {
-                                    copyIcon.classList.remove('hidden');
-                                    checkIcon.classList.add('hidden');
-                                }, 2000);
-                            } catch (err) {
-                                console.error('No se pudo copiar el texto:', err);
-                            }
-                            document.body.removeChild(tempTextArea);
-                        });
-                        messageWrapper.appendChild(copyButton);
-                        isWaitingForResponse = false;
-                        enableInputs();
-                    }
-                }
-                type();
-            };
-
-            const showTypingIndicator = () => {
-                const indicatorContainer = document.createElement('div');
-                indicatorContainer.id = 'typing-indicator';
-                indicatorContainer.className = 'w-full flex justify-start';
-                indicatorContainer.innerHTML = `<div class="flex items-center gap-2 max-w-md md:max-w-lg rounded-2xl p-3 text-sm boo-message"><img class="w-6 h-6 rounded-full" src="https://res.cloudinary.com/dsdnpstgi/image/upload/v1756503469/Boo_Mastermind_-_vasyl_pavlyuchok_40606_httpss.mj.runDaU8K48LteU_close-up_port_3b5e9292-ef3c-4c7f-93c8-c1a99da3780e_3_skkffe.png" alt="Boo Avatar"><div class="typing-indicator-dot" style="animation-delay: 0s;"></div></div>`;
-                chatContainer.appendChild(indicatorContainer);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            };
-
-            const fileToBase64 = (file) => {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(file);
-                    reader.onload = () => {
-                        const base64String = reader.result.split(',')[1];
-                        resolve({
-                            fileName: file.name,
-                            fileType: file.type,
-                            fileContent: base64String
-                        });
-                    };
-                    reader.onerror = error => reject(error);
-                });
-            };
-
-            const updateButtonState = () => {
-                if (isRecording) {
-                    sendButton.classList.add('hidden');
-                    return;
-                }
-                const hasMessage = textarea.value.trim().length > 0;
-                const hasFiles = fileStore.length > 0;
-                if (hasMessage || hasFiles) {
-                    sendButton.classList.remove('hidden');
-                } else {
-                    sendButton.classList.add('hidden');
-                }
-            };
-
-            const playNotificationSound = () => {
-                try {
-                    if (!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)();
-                    if (audioCtx.state === 'suspended') audioCtx.resume();
-                    const oscillator = audioCtx.createOscillator();
-                    const gainNode = audioCtx.createGain();
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    oscillator.type = 'sine';
-                    oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
-                    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                    gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.4);
-                    oscillator.start(audioCtx.currentTime);
-                    oscillator.stop(audioCtx.currentTime + 0.4);
-                } catch (e) {
-                    console.error("Error al reproducir el sonido de notificación:", e);
-                }
-            };
-
-            const handleSubmit = async () => {
-                if (isWaitingForResponse) return;
-                const message = textarea.value.trim();
-                const file = fileStore.length > 0 ? fileStore[0] : null;
-                if (!message && !file) return;
-                isWaitingForResponse = true;
-                displayUserMessage(message, file);
-                const payload = {
-                    userId,
-                    message
-                };
-                if (file) {
-                    try {
-                        const fileData = await fileToBase64(file);
-                        payload.files = [fileData];
-                    } catch (error) {
-                        console.error("Error al convertir archivo a Base64:", error);
-                        typeBooMessage("Perdona, hubo un error al procesar el archivo.");
-                        return;
-                    }
-                }
-                textarea.value = "";
-                filePreviewContainer.innerHTML = '';
-                fileStore = [];
-                autoResize();
-                disableInputs();
-                showTypingIndicator();
-                try {
-                    const response = await fetch(webhookUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(payload)
-                    });
-                    if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-                    const textResponse = await response.text();
-                    if (!textResponse || textResponse.trim() === '') {
-                        typeBooMessage("Perdona ha ocurrido un error.");
-                        return;
-                    }
-                    try {
-                        const data = JSON.parse(textResponse);
-                        let booMessage = null;
-                        if (Array.isArray(data) && data.length > 0 && data[0].output) booMessage = data[0].output;
-                        else if (data && data.output) booMessage = data.output;
-                        else if (Array.isArray(data) && data.length > 0 && data[0].text) booMessage = data[0].text;
-                        else if (data && data.text) booMessage = data.text;
-                        else if (data && data.reply) booMessage = data.reply;
-                        if (booMessage && booMessage.trim() !== '') typeBooMessage(booMessage);
-                        else typeBooMessage("Perdona ha ocurrido un error.");
-                    } catch (jsonError) {
-                        typeBooMessage(textResponse);
-                    }
-                } catch (error) {
-                    console.error('Error al comunicar con el Webhook:', error);
-                    typeBooMessage("Perdona ha ocurrido un error.");
-                }
-            };
-
-            const startRecording = () => {
-                if (!recognition) {
-                    alert("El reconocimiento de voz no es compatible con este navegador.");
-                    return;
-                }
-                if (isRecording) return;
-                textBeforeRecording = textarea.value;
-                isRecording = true;
-                updateButtonState();
-                micIcon.classList.add('hidden');
-                stopIcon.classList.remove('hidden');
-                micButton.classList.add('bg-red-500/20', 'text-red-500');
-                inputWrapper.classList.add('hidden');
-                voiceVisualizer.classList.remove('hidden');
-                voiceVisualizer.classList.add('flex');
-                let seconds = 0;
-                recordingTimer.textContent = '00:00';
-                timerInterval = setInterval(() => {
-                    seconds++;
-                    const min = String(Math.floor(seconds / 60)).padStart(2, '0');
-                    const sec = String(seconds % 60).padStart(2, '0');
-                    recordingTimer.textContent = `${min}:${sec}`;
-                }, 1000);
-                visualizerBarsContainer.innerHTML = Array(40).fill('<div class="w-1 bg-white/50 rounded-full voice-visualizer-bar"></div>').join('');
-                recognition.start();
-            };
-
-            const stopRecording = () => {
-                if (!isRecording) return;
-                isRecording = false;
-                micIcon.classList.remove('hidden');
-                stopIcon.classList.add('hidden');
-                micButton.classList.remove('bg-red-500/20', 'text-red-500');
-                inputWrapper.classList.remove('hidden');
-                voiceVisualizer.classList.add('hidden');
-                voiceVisualizer.classList.remove('flex');
-                clearInterval(timerInterval);
-                recognition.stop();
-                updateButtonState();
-            };
-
-            const handleFiles = (files) => {
-                if (files.length === 0) return;
-                fileStore = [files[0]];
-                filePreviewContainer.innerHTML = '';
-                const file = fileStore[0];
-                const reader = new FileReader();
-                const previewItem = document.createElement('div');
-                previewItem.className = 'file-preview-item';
-                let fileIconHtml;
-                if (file.type.startsWith('image/')) {
-                    reader.onload = e => {
-                        const imgElement = previewItem.querySelector('.file-icon-placeholder');
-                        if (imgElement) imgElement.innerHTML = `<img src="${e.target.result}" class="preview-image">`;
-                    };
-                    reader.readAsDataURL(file);
-                    fileIconHtml = `<div class="file-icon file-icon-placeholder"></div>`;
-                } else {
-                    const extension = file.name.split('.').pop().toUpperCase();
-                    fileIconHtml = `<div class="file-icon"><span class="text-white font-bold text-xs">${extension}</span></div>`;
-                }
-                previewItem.innerHTML = `${fileIconHtml}<div class="file-info"><span class="file-name">${file.name}</span><span class="file-type">${file.type}</span></div><div class="remove-btn" data-index="0"><svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg></div>`;
-                filePreviewContainer.appendChild(previewItem);
-                updateButtonState();
-            };
-
-            textarea.addEventListener('input', () => {
-                updateButtonState();
-                autoResize();
-            });
-            textarea.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit();
-                }
-            });
-
+            textarea.addEventListener('input', () => { updateButtonState(); autoResize(); });
+            textarea.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); } });
             sendButton.addEventListener('click', handleSubmit);
             micButton.addEventListener('click', () => isRecording ? stopRecording() : startRecording());
             resetChatButton.addEventListener('click', resetChat);
             uploadButton.addEventListener('click', () => fileInput.click());
             fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
-            filePreviewContainer.addEventListener('click', (e) => {
-                const removeBtn = e.target.closest('.remove-btn');
-                if (removeBtn) {
-                    fileStore = [];
-                    filePreviewContainer.innerHTML = '';
-                    updateButtonState();
-                }
-            });
-            suggestionButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    textarea.value = button.textContent;
-                    handleSubmit();
-                });
-            });
+            filePreviewContainer.addEventListener('click', (e) => { const removeBtn = e.target.closest('.remove-btn'); if (removeBtn) { fileStore = []; filePreviewContainer.innerHTML = ''; updateButtonState(); } });
+            suggestionButtons.forEach(button => { button.addEventListener('click', () => { textarea.value = button.textContent; handleSubmit(); }); });
 
             updateButtonState();
             autoResize();
@@ -686,5 +172,21 @@
                 initializeBooWidget();
             }
         }, 500);
-    });
+    }
+    
+    // --- NUEVO CARGADOR "PACIENTE" ---
+    // En lugar de usar 'DOMContentLoaded', esta función busca el div activamente.
+    function runWhenReady() {
+        if (document.getElementById(targetDivId)) {
+            // El div existe, ¡ejecutar el script principal!
+            main();
+        } else {
+            // El div no existe todavía, volver a intentar en 100ms.
+            setTimeout(runWhenReady, 100);
+        }
+    }
+
+    // Iniciar el proceso de búsqueda.
+    runWhenReady();
+
 })();
