@@ -134,7 +134,7 @@
             .typing-indicator-dot { background-color: var(--text-secondary); animation: typing-pulse 1.4s infinite ease-in-out; display: inline-block; width: 8px; height: 8px; border-radius: 50%; } @keyframes typing-pulse { 0%, 100% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } }
         `;
         
-        function initializeBooWidget(shadowRoot) {
+        function initializeBooWidget() {
             if (window.booWidgetLogicInitialized) return;
             window.booWidgetLogicInitialized = true;
 
@@ -197,9 +197,8 @@
         
         const tailwindScript = document.createElement('script');
         tailwindScript.src = 'https://cdn.tailwindcss.com';
+        tailwindScript.onload = () => initializeBooWidget(shadowRoot); // Se pasa shadowRoot al inicializador
         shadowRoot.appendChild(tailwindScript);
-
-        setTimeout(() => initializeBooWidget(shadowRoot), 150);
     }
     
     function runWhenReady() {
@@ -207,7 +206,6 @@
             if (document.getElementById(targetDivId)) {
                 main();
             } else if (document.readyState === 'complete') {
-                // Si la página cargó y el div no está, es un error de instalación.
                 console.error(`Error: La página cargó pero el contenedor #${targetDivId} nunca apareció.`);
             } else {
                 setTimeout(check, 100);
