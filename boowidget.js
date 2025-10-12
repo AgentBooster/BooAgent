@@ -13,8 +13,19 @@
             return;
         }
 
+        widgetContainer.style.width = '100%';
+        widgetContainer.style.height = '90vh';
+        widgetContainer.style.maxWidth = '800px';
+        widgetContainer.style.margin = 'auto';
+        widgetContainer.style.display = 'flex';
+        widgetContainer.style.flexDirection = 'column';
+        widgetContainer.style.overflow = 'hidden';
+        widgetContainer.style.borderRadius = '1rem';
+        widgetContainer.style.boxShadow = '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)';
+
+
         const widgetHTML = `
-            <div id="main-container" class="w-full max-w-6xl rounded-2xl shadow-2xl p-6 md:p-8 text-white relative overflow-hidden flex flex-col transition-all duration-500" style="background: radial-gradient(125% 125% at 50% 101%, rgba(245,87,2,1) 10.5%, rgba(245,120,2,1) 16%, rgba(245,140,2,1) 17.5%, rgba(245,170,100,1) 25%, rgba(238,174,202,1) 40%, rgba(202,179,214,1) 65%, rgba(148,201,233,1) 100%); height: 100vh;">
+            <div id="main-container" class="w-full h-full max-w-6xl rounded-2xl shadow-2xl p-6 md:p-8 text-white relative overflow-hidden flex flex-col transition-all duration-500" style="background: radial-gradient(125% 125% at 50% 101%, rgba(245,87,2,1) 10.5%, rgba(245,120,2,1) 16%, rgba(245,140,2,1) 17.5%, rgba(245,170,100,1) 25%, rgba(238,174,202,1) 40%, rgba(202,179,214,1) 65%, rgba(148,201,233,1) 100%);">
                 <header class="flex-shrink-0 relative">
                     <div class="flex justify-center">
                         <div class="bg-black/20 backdrop-blur-sm rounded-full pl-2 pr-4 py-2 flex items-center gap-3 w-fit">
@@ -91,138 +102,35 @@
         `;
 
         const widgetCSS = `
-            #${targetDivId} {
-                font-family: 'Inter', sans-serif;
-            }
+            #${targetDivId} { font-family: 'Inter', sans-serif; }
             #${targetDivId} textarea::-webkit-scrollbar { width: 6px; }
             #${targetDivId} textarea::-webkit-scrollbar-track { background: transparent; }
             #${targetDivId} textarea::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 3px; }
             #${targetDivId} textarea::-webkit-scrollbar-thumb:hover { background-color: #555555; }
-            #${targetDivId} .voice-visualizer-bar {
-                animation: pulse 1s infinite ease-in-out;
-            }
-            @keyframes pulse {
-                0%, 100% { transform: scaleY(0.2); }
-                50% { transform: scaleY(1); }
-            }
-            #${targetDivId} #file-preview-container {
-                display: flex;
-                overflow-x: auto;
-                overflow-y: hidden;
-                flex-wrap: nowrap;
-                padding-bottom: 8px;
-                scrollbar-width: thin;
-                scrollbar-color: #444444 transparent;
-            }
+            #${targetDivId} .voice-visualizer-bar { animation: pulse 1s infinite ease-in-out; }
+            @keyframes pulse { 0%, 100% { transform: scaleY(0.2); } 50% { transform: scaleY(1); } }
+            #${targetDivId} #file-preview-container { display: flex; overflow-x: auto; overflow-y: hidden; flex-wrap: nowrap; padding-bottom: 8px; scrollbar-width: thin; scrollbar-color: #444444 transparent; }
             #${targetDivId} #file-preview-container::-webkit-scrollbar { height: 4px; }
             #${targetDivId} #file-preview-container::-webkit-scrollbar-track { background: transparent; }
             #${targetDivId} #file-preview-container::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 2px; }
-            #${targetDivId} .file-preview-item {
-                position: relative;
-                display: flex;
-                align-items: center;
-                background-color: #2E3033;
-                border-radius: 12px;
-                padding: 8px;
-                margin-right: 8px;
-                margin-top: 4px;
-                flex-shrink: 0;
-                width: 180px;
-            }
-            #${targetDivId} .file-preview-item .file-icon {
-                flex-shrink: 0;
-                width: 32px;
-                height: 32px;
-                border-radius: 8px;
-                background-color: #EF4444;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            #${targetDivId} .file-preview-item .file-info {
-                margin-left: 8px;
-                display: flex;
-                flex-direction: column;
-                overflow: hidden;
-                color: #E5E7EB;
-            }
-            #${targetDivId} .file-preview-item .file-name {
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                font-size: 0.875rem;
-                line-height: 1.25rem;
-            }
-            #${targetDivId} .file-preview-item .file-type {
-                font-size: 0.75rem;
-                line-height: 1rem;
-                color: #9CA3AF;
-            }
-            #${targetDivId} .file-preview-item .remove-btn {
-                position: absolute;
-                top: -4px;
-                right: -4px;
-                width: 16px;
-                height: 16px;
-                border-radius: 9999px;
-                background-color: #4B5563;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-            }
-            #${targetDivId} .file-preview-item img.preview-image {
-                width: 32px;
-                height: 32px;
-                border-radius: 8px;
-                object-fit: cover;
-                flex-shrink: 0;
-            }
-            #${targetDivId} #chat-container {
-                scrollbar-width: thin;
-                scrollbar-color: #444444 transparent;
-            }
+            #${targetDivId} .file-preview-item { position: relative; display: flex; align-items: center; background-color: #2E3033; border-radius: 12px; padding: 8px; margin-right: 8px; margin-top: 4px; flex-shrink: 0; width: 180px; }
+            #${targetDivId} .file-preview-item .file-icon { flex-shrink: 0; width: 32px; height: 32px; border-radius: 8px; background-color: #EF4444; display: flex; align-items: center; justify-content: center; }
+            #${targetDivId} .file-preview-item .file-info { margin-left: 8px; display: flex; flex-direction: column; overflow: hidden; color: #E5E7EB; }
+            #${targetDivId} .file-preview-item .file-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.875rem; line-height: 1.25rem; }
+            #${targetDivId} .file-preview-item .file-type { font-size: 0.75rem; line-height: 1rem; color: #9CA3AF; }
+            #${targetDivId} .file-preview-item .remove-btn { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; border-radius: 9999px; background-color: #4B5563; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+            #${targetDivId} .file-preview-item img.preview-image { width: 32px; height: 32px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+            #${targetDivId} #chat-container { scrollbar-width: thin; scrollbar-color: #444444 transparent; }
             #${targetDivId} #chat-container::-webkit-scrollbar { width: 6px; }
             #${targetDivId} #chat-container::-webkit-scrollbar-track { background: transparent; }
             #${targetDivId} #chat-container::-webkit-scrollbar-thumb { background-color: #444444; border-radius: 3px; }
-            #${targetDivId} .user-message {
-                background-color: #373A40;
-                align-self: flex-end;
-                text-align: left;
-            }
-            #${targetDivId} .boo-message {
-                background-color: rgba(0, 0, 0, 0.15);
-                align-self: flex-start;
-                text-align: left;
-            }
-            #${targetDivId} .boo-message ul {
-                padding-left: 1.25rem;
-            }
-            #${targetDivId} .boo-message a {
-                color: #93C5FD;
-                text-decoration: underline;
-            }
-            #${targetDivId} .boo-message a:hover {
-                color: #BFDBFE;
-            }
-            #${targetDivId} .typing-indicator-dot {
-                animation: typing-pulse 1.4s infinite ease-in-out;
-                display: inline-block;
-                background-color: white;
-                width: 8px;
-                height: 8px;
-                border-radius: 50%;
-            }
-            @keyframes typing-pulse {
-                0%, 100% {
-                    transform: scale(0.8);
-                    opacity: 0.5;
-                }
-                50% {
-                    transform: scale(1.2);
-                    opacity: 1;
-                }
-            }
+            #${targetDivId} .user-message { background-color: #373A40; align-self: flex-end; text-align: left; }
+            #${targetDivId} .boo-message { background-color: rgba(0, 0, 0, 0.15); align-self: flex-start; text-align: left; }
+            #${targetDivId} .boo-message ul { padding-left: 1.25rem; }
+            #${targetDivId} .boo-message a { color: #93C5FD; text-decoration: underline; }
+            #${targetDivId} .boo-message a:hover { color: #BFDBFE; }
+            #${targetDivId} .typing-indicator-dot { animation: typing-pulse 1.4s infinite ease-in-out; display: inline-block; background-color: white; width: 8px; height: 8px; border-radius: 50%; }
+            @keyframes typing-pulse { 0%, 100% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } }
         `;
         
         function initializeBooWidget() {
