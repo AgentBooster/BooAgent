@@ -7,21 +7,23 @@
     const targetDivId = 'boo-ai-widget';
 
     function main() {
-        const widgetContainer = document.getElementById(targetDivId);
-
-        if (!widgetContainer) {
+        const widgetHost = document.getElementById(targetDivId);
+        if (!widgetHost) {
             console.error(`Error: Contenedor #${targetDivId} no encontrado.`);
             return;
         }
 
-        widgetContainer.style.display = 'block';
-        widgetContainer.style.width = '100%';
-        widgetContainer.style.maxWidth = '1000px';
-        widgetContainer.style.height = 'clamp(650px, 90vh, 1000px)';
-        widgetContainer.style.margin = '20px auto';
-        widgetContainer.style.borderRadius = '1.25rem';
-        widgetContainer.style.boxShadow = '0 25px 50px -12px rgb(0 0 0 / 0.25)';
-        widgetContainer.style.overflow = 'hidden';
+        widgetHost.style.display = 'block';
+        widgetHost.style.width = '100%';
+        widgetHost.style.maxWidth = '1000px';
+        widgetHost.style.height = 'clamp(650px, 90vh, 1000px)';
+        widgetHost.style.margin = '20px auto';
+        widgetHost.style.borderRadius = '1.25rem';
+        widgetHost.style.boxShadow = '0 25px 50px -12px rgb(0 0 0 / 0.25)';
+        widgetHost.style.overflow = 'hidden';
+        widgetHost.style.fontFamily = "sans-serif";
+
+        const shadowRoot = widgetHost.attachShadow({ mode: 'open' });
 
         const widgetHTML = `
             <div id="main-container" class="w-full h-full text-white relative overflow-hidden flex flex-col transition-colors duration-300" style="background: var(--bg-gradient);">
@@ -47,7 +49,7 @@
                         </button>
                     </div>
                 </header>
-                <main id="content-area" class="mt-4 flex-1 flex flex-col items-center text-center overflow-hidden justify-center p-4 md:p-6 pt-0">
+                <main id="content-area" class="flex-1 flex flex-col items-center text-center overflow-hidden justify-center p-4 md:p-6 pt-0">
                     <div id="initial-view" class="w-full space-y-6 transition-opacity duration-500">
                          <h1 class="text-3xl md:text-5xl font-bold leading-tight mt-6" style="color: var(--text-primary);">¿Puedo ayudarte a evaluar qué agente se adaptaría mejor a tu empresa?</h1>
                          <p class="text-md" style="color: var(--text-secondary);">Puedo resolver sus dudas, darle ideas sobre agentes, agendarle una reunión... y a veces, ¡llevarle una sorpresa!</p>
@@ -101,118 +103,50 @@
         const widgetCSS = `
             :host {
                 --bg-gradient: radial-gradient(125% 125% at 50% 101%, rgba(245,87,2,1) 10.5%, rgba(245,120,2,1) 16%, rgba(245,140,2,1) 17.5%, rgba(245,170,100,1) 25%, rgba(238,174,202,1) 40%, rgba(202,179,214,1) 65%, rgba(148,201,233,1) 100%);
-                --text-primary: #ffffff;
-                --text-secondary: #E5E7EB;
-                --text-placeholder: #9CA3AF;
-                --bg-input: #1F2023;
-                --border-color: #444444;
-                --scrollbar-thumb: #444444;
-                --bg-user-msg: #373A40;
-                --bg-boo-msg: rgba(0, 0, 0, 0.15);
-                --bg-preview: #2E3033;
-                --bg-remove-btn: #4B5563;
-                --bg-send-btn: #ffffff;
-                --icon-send-btn: #1F2023;
-                --icon-action: #9CA3AF;
-                --icon-action-hover: #D1D5DB;
+                --text-primary: #ffffff; --text-secondary: #E5E7EB; --text-placeholder: #9CA3AF;
+                --bg-input: #1F2023; --border-color: #444444; --scrollbar-thumb: #444444;
+                --bg-user-msg: #373A40; --bg-boo-msg: rgba(0, 0, 0, 0.15);
+                --bg-preview: #2E3033; --bg-remove-btn: #4B5563;
+                --bg-send-btn: #ffffff; --icon-send-btn: #1F2023;
+                --icon-action: #9CA3AF; --icon-action-hover: #D1D5DB;
             }
             :host(.light) {
                 --bg-gradient: linear-gradient(to top, #e6e9f0 0%, #eef1f5 100%);
-                --text-primary: #111827;
-                --text-secondary: #4B5563;
-                --text-placeholder: #9CA3AF;
-                --bg-input: #ffffff;
-                --border-color: #D1D5DB;
-                --scrollbar-thumb: #9CA3AF;
-                --bg-user-msg: #DBEAFE;
-                --bg-boo-msg: #F3F4F6;
-                --bg-preview: #F3F4F6;
-                --bg-remove-btn: #D1D5DB;
-                --bg-send-btn: #2563EB;
-                --icon-send-btn: #ffffff;
-                --icon-action: #6B7280;
-                --icon-action-hover: #111827;
+                --text-primary: #111827; --text-secondary: #4B5563; --text-placeholder: #9CA3AF;
+                --bg-input: #ffffff; --border-color: #D1D5DB; --scrollbar-thumb: #9CA3AF;
+                --bg-user-msg: #DBEAFE; --bg-boo-msg: #F3F4F6;
+                --bg-preview: #F3F4F6; --bg-remove-btn: #D1D5DB;
+                --bg-send-btn: #2563EB; --icon-send-btn: #ffffff;
+                --icon-action: #6B7280; --icon-action-hover: #111827;
             }
-            #main-container { font-family: 'Inter', sans-serif; height: 100% !important; color: var(--text-primary); }
-            textarea { color: var(--text-primary); }
-            textarea::placeholder { color: var(--text-placeholder); }
+            #main-container { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+            textarea { color: var(--text-primary); } textarea::placeholder { color: var(--text-placeholder); }
             #prompt-container { background-color: var(--bg-input); border: 1px solid var(--border-color); }
-            #upload-button, #mic-button { color: var(--icon-action); }
-            #upload-button:hover, #mic-button:hover { color: var(--icon-action-hover); background-color: rgba(156, 163, 175, 0.1); }
-            #send-button { background-color: var(--bg-send-btn); color: var(--icon-send-btn); }
-            #send-button:hover { opacity: 0.8; }
+            #upload-button, #mic-button { color: var(--icon-action); } #upload-button:hover, #mic-button:hover { color: var(--icon-action-hover); background-color: rgba(156, 163, 175, 0.1); }
+            #send-button { background-color: var(--bg-send-btn); color: var(--icon-send-btn); } #send-button:hover { opacity: 0.8; }
             textarea::-webkit-scrollbar { width: 6px; } textarea::-webkit-scrollbar-track { background: transparent; } textarea::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb); border-radius: 3px; }
             .voice-visualizer-bar { animation: pulse 1s infinite ease-in-out; } @keyframes pulse { 0%, 100% { transform: scaleY(0.2); } 50% { transform: scaleY(1); } }
             #file-preview-container { display: flex; overflow-x: auto; overflow-y: hidden; flex-wrap: nowrap; padding-bottom: 8px; scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb) transparent; }
             #file-preview-container::-webkit-scrollbar { height: 4px; } #file-preview-container::-webkit-scrollbar-track { background: transparent; } #file-preview-container::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb); border-radius: 2px; }
-            .file-preview-item { position: relative; display: flex; align-items: center; background-color: var(--bg-preview); border-radius: 12px; padding: 8px; margin-right: 8px; margin-top: 4px; flex-shrink: 0; width: 180px; }
-            .file-preview-item .file-info { color: var(--text-primary); }
-            .file-preview-item .file-type { color: var(--text-secondary); }
-            .file-preview-item .remove-btn { background-color: var(--bg-remove-btn); }
-            #chat-container { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb) transparent; }
-            #chat-container::-webkit-scrollbar { width: 6px; } #chat-container::-webkit-scrollbar-track { background: transparent; } #chat-container::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb); border-radius: 3px; }
-            .user-message { background-color: var(--bg-user-msg); color: var(--text-primary); }
-            .boo-message { background-color: var(--bg-boo-msg); color: var(--text-primary); }
-            .boo-message a { color: #2563EB; }
-            .typing-indicator-dot { background-color: var(--text-secondary); animation: typing-pulse 1.4s infinite ease-in-out; display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
-            @keyframes typing-pulse { 0%, 100% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } }
+            .file-preview-item { position: relative; display: flex; align-items: center; background-color: var(--bg-preview); border-radius: 12px; padding: 8px; margin-right: 8px; margin-top: 4px; flex-shrink: 0; width: 180px; } .file-preview-item .file-info { color: var(--text-primary); } .file-preview-item .file-type { color: var(--text-secondary); } .file-preview-item .remove-btn { background-color: var(--bg-remove-btn); }
+            #chat-container { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb) transparent; } #chat-container::-webkit-scrollbar { width: 6px; } #chat-container::-webkit-scrollbar-track { background: transparent; } #chat-container::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb); border-radius: 3px; }
+            .user-message { background-color: var(--bg-user-msg); color: var(--text-primary); } .boo-message { background-color: var(--bg-boo-msg); color: var(--text-primary); } .boo-message a { color: #2563EB; }
+            .typing-indicator-dot { background-color: var(--text-secondary); animation: typing-pulse 1.4s infinite ease-in-out; display: inline-block; width: 8px; height: 8px; border-radius: 50%; } @keyframes typing-pulse { 0%, 100% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } }
         `;
         
-        function initializeBooWidget() {
+        function initializeBooWidget(shadowRoot) {
             if (window.booWidgetLogicInitialized) return;
             window.booWidgetLogicInitialized = true;
 
-            const mainContainer = shadowRoot.getElementById('main-container');
-            const initialView = shadowRoot.getElementById('initial-view');
-            const chatContainer = shadowRoot.getElementById('chat-container');
-            const bannerText = shadowRoot.getElementById('banner-text');
-            const resetChatContainer = shadowRoot.getElementById('reset-chat-container');
-            const resetChatButton = shadowRoot.getElementById('reset-chat-button');
-            const textarea = shadowRoot.getElementById('prompt-textarea');
-            const micButton = shadowRoot.getElementById('mic-button');
-            const sendButton = shadowRoot.getElementById('send-button');
-            const micIcon = shadowRoot.getElementById('mic-icon');
-            const stopIcon = shadowRoot.getElementById('stop-icon');
-            const uploadButton = shadowRoot.getElementById('upload-button');
-            const fileInput = shadowRoot.getElementById('file-input');
-            const filePreviewContainer = shadowRoot.getElementById('file-preview-container');
-            const voiceVisualizer = shadowRoot.getElementById('voice-visualizer');
-            const recordingTimer = shadowRoot.getElementById('recording-timer');
-            const visualizerBarsContainer = voiceVisualizer.querySelector('.gap-0\\.5');
-            const suggestionButtons = shadowRoot.querySelectorAll('#suggestion-buttons button');
-            const themeToggleButton = shadowRoot.getElementById('theme-toggle-button');
-            const sunIcon = shadowRoot.getElementById('sun-icon');
-            const moonIcon = shadowRoot.getElementById('moon-icon');
+            const mainContainer = shadowRoot.getElementById('main-container'); const initialView = shadowRoot.getElementById('initial-view'); const chatContainer = shadowRoot.getElementById('chat-container'); const bannerText = shadowRoot.getElementById('banner-text'); const resetChatContainer = shadowRoot.getElementById('reset-chat-container'); const resetChatButton = shadowRoot.getElementById('reset-chat-button'); const textarea = shadowRoot.getElementById('prompt-textarea'); const micButton = shadowRoot.getElementById('mic-button'); const sendButton = shadowRoot.getElementById('send-button'); const micIcon = shadowRoot.getElementById('mic-icon'); const stopIcon = shadowRoot.getElementById('stop-icon'); const uploadButton = shadowRoot.getElementById('upload-button'); const fileInput = shadowRoot.getElementById('file-input'); const filePreviewContainer = shadowRoot.getElementById('file-preview-container'); const voiceVisualizer = shadowRoot.getElementById('voice-visualizer'); const recordingTimer = shadowRoot.getElementById('recording-timer'); const visualizerBarsContainer = voiceVisualizer.querySelector('.gap-0\\.5'); const suggestionButtons = shadowRoot.querySelectorAll('#suggestion-buttons button'); const themeToggleButton = shadowRoot.getElementById('theme-toggle-button'); const sunIcon = shadowRoot.getElementById('sun-icon'); const moonIcon = shadowRoot.getElementById('moon-icon');
             
             let isChatStarted = false; let isRecording = false; let recognition = null; let timerInterval = null; let fileStore = []; let audioCtx; let textBeforeRecording = ''; let isWaitingForResponse = false;
             const webhookUrl = 'https://n8n.agentbooster.ai/webhook/agent-boo-web-982925e5232096r01r012r126327te73';
             let userId = localStorage.getItem('boo_user_id'); if (!userId) { userId = crypto.randomUUID(); localStorage.setItem('boo_user_id', userId); }
             
-            function applyTheme(theme) {
-                if (theme === 'light') {
-                    widgetHost.classList.add('light');
-                    sunIcon.classList.add('hidden');
-                    moonIcon.classList.remove('hidden');
-                } else {
-                    widgetHost.classList.remove('light');
-                    sunIcon.classList.remove('hidden');
-                    moonIcon.classList.add('hidden');
-                }
-                localStorage.setItem('boo-theme', theme);
-            }
-
-            themeToggleButton.addEventListener('click', () => {
-                const newTheme = widgetHost.classList.contains('light') ? 'dark' : 'light';
-                applyTheme(newTheme);
-            });
-
-            const savedTheme = localStorage.getItem('boo-theme');
-            const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-            if (savedTheme) {
-                applyTheme(savedTheme);
-            } else {
-                applyTheme(prefersLight ? 'light' : 'dark');
-            }
+            function applyTheme(theme) { if (theme === 'light') { widgetHost.classList.add('light'); sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden'); } else { widgetHost.classList.remove('light'); sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden'); } localStorage.setItem('boo-theme', theme); }
+            themeToggleButton.addEventListener('click', () => { const newTheme = widgetHost.classList.contains('light') ? 'dark' : 'light'; applyTheme(newTheme); });
+            const savedTheme = localStorage.getItem('boo-theme'); const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches; if (savedTheme) { applyTheme(savedTheme); } else { applyTheme(prefersLight ? 'light' : 'dark'); }
 
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition; if (SpeechRecognition) { recognition = new SpeechRecognition(); recognition.lang = 'es-ES'; recognition.interimResults = true; recognition.continuous = true; recognition.onresult = (event) => { let fullTranscript = ''; for (let i = 0; i < event.results.length; i++) { fullTranscript += event.results[i][0].transcript; } const separator = textBeforeRecording.trim().length > 0 ? ' ' : ''; textarea.value = textBeforeRecording + separator + fullTranscript; updateButtonState(); autoResize(); }; recognition.onerror = () => { if (isRecording) stopRecording(); }; recognition.onend = () => { if (isRecording) stopRecording(); }; }
             const disableInputs = () => { textarea.disabled = true; sendButton.disabled = true; uploadButton.disabled = true; micButton.disabled = true; textarea.placeholder = "Boo está escribiendo..."; sendButton.classList.add('opacity-50', 'cursor-not-allowed'); uploadButton.classList.add('opacity-50', 'cursor-not-allowed'); micButton.classList.add('opacity-50', 'cursor-not-allowed'); };
@@ -265,18 +199,21 @@
         tailwindScript.src = 'https://cdn.tailwindcss.com';
         shadowRoot.appendChild(tailwindScript);
 
-        setTimeout(initializeBooWidget, 150);
+        setTimeout(() => initializeBooWidget(shadowRoot), 150);
     }
     
     function runWhenReady() {
-        if (document.getElementById(targetDivId)) {
-            main();
-        } else if (document.readyState === 'complete') {
-            // Si la página está completamente cargada y el div aún no existe, no aparecerá.
-            console.error(`Error: La página se cargó pero el contenedor #${targetDivId} nunca apareció.`);
-        } else {
-            setTimeout(runWhenReady, 100);
-        }
+        const check = () => {
+            if (document.getElementById(targetDivId)) {
+                main();
+            } else if (document.readyState === 'complete') {
+                // Si la página cargó y el div no está, es un error de instalación.
+                console.error(`Error: La página cargó pero el contenedor #${targetDivId} nunca apareció.`);
+            } else {
+                setTimeout(check, 100);
+            }
+        };
+        check();
     }
 
     if (document.readyState === 'loading') {
