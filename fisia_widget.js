@@ -72,9 +72,9 @@
       bottom: 96px;
       right: 24px;
       z-index: 2147483001;
-      width: 455px;
+      width: 515px;
       max-width: calc(100vw - 32px);
-      height: 615px;
+      height: 675px;
       border-radius: 22px;
       background: rgba(7, 15, 25, 0.7);
       backdrop-filter: blur(32px);
