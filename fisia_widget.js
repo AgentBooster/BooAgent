@@ -84,6 +84,8 @@
       width: 515px;
       max-width: calc(100vw - 32px);
       height: 675px;
+      padding-bottom: calc(var(--fisia-safe-area-bottom, 0px) + var(--fisia-keyboard-offset, 0px));
+      box-sizing: border-box;
       border-radius: 22px;
       background: rgba(7, 15, 25, 0.7);
       backdrop-filter: blur(32px);
@@ -95,6 +97,8 @@
       display: none;
       flex-direction: column;
       overflow: hidden;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
       animation: fisiaPopIn 0.18s ease-out;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     }
@@ -117,7 +121,11 @@
         width: 100vw;
         max-width: 100vw;
         height: 100vh;
+        height: 100dvh;
         max-height: 100vh;
+        max-height: 100dvh;
+        min-height: 100vh;
+        min-height: 100dvh;
         border-radius: 0;
         border: none;
         bottom: 0;
@@ -361,80 +369,42 @@
     };
   }
 
-  const mobileViewportManager = {
-    listenersAttached: false,
-    touchGuardPanel: null,
-  };
-  const KEYBOARD_TRIGGER_THRESHOLD = 80;
-  const preventTouchMoveDuringKeyboard = (event) => {
-    if (state.isKeyboardVisible) {
-      event.preventDefault();
-    }
-  };
+  const rootElement = typeof document !== 'undefined' ? document.documentElement : null;
+  const keyboardOffsetManager = { listenerAttached: false };
 
   function setKeyboardOffset(value) {
-    document.documentElement.style.setProperty('--fisia-keyboard-offset', `${Math.max(0, Math.round(value))}px`);
+    if (!rootElement) return;
+    const safeValue = Math.max(0, Number.isFinite(value) ? value : 0);
+    rootElement.style.setProperty('--fisia-keyboard-offset', `${safeValue}px`);
   }
 
-  function attachTouchGuard(panel) {
-    if (mobileViewportManager.touchGuardPanel === panel) return;
-    if (mobileViewportManager.touchGuardPanel) {
-      mobileViewportManager.touchGuardPanel.removeEventListener('touchmove', preventTouchMoveDuringKeyboard);
-      mobileViewportManager.touchGuardPanel = null;
-    }
-    if (panel) {
-      panel.addEventListener('touchmove', preventTouchMoveDuringKeyboard, { passive: false });
-      mobileViewportManager.touchGuardPanel = panel;
-    }
-  }
-
-  function resetMobilePanelViewport() {
-    const panel = document.getElementById('fisia-widget-panel');
-    setKeyboardOffset(0);
-    attachTouchGuard(null);
-    state.isKeyboardVisible = false;
-    if (!panel) return;
-    panel.style.overflow = '';
-  }
-
-  function updateMobilePanelViewport() {
-    const panel = document.getElementById('fisia-widget-panel');
-    if (!panel) return;
-    if (!isMobileViewport() || !state.isOpen) {
-      resetMobilePanelViewport();
-      return;
-    }
+  function updateKeyboardOffset() {
+    if (typeof window === 'undefined') return;
     const vv = window.visualViewport;
     if (!vv) {
-      resetMobilePanelViewport();
+      setKeyboardOffset(0);
       return;
     }
-    const overlap = Math.max(window.innerHeight - (vv.height + vv.offsetTop), 0);
-    const keyboardVisible = overlap > KEYBOARD_TRIGGER_THRESHOLD;
-    if (!keyboardVisible) {
-      resetMobilePanelViewport();
-      return;
-    }
-    const offset = overlap + Math.max(0, vv.offsetTop);
-    setKeyboardOffset(offset);
-    state.isKeyboardVisible = true;
-    panel.style.overflow = 'hidden';
-    attachTouchGuard(panel);
+    const overlap = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+    setKeyboardOffset(overlap);
   }
 
-  function ensureMobileViewportListeners() {
-    if (mobileViewportManager.listenersAttached) return;
-    const handler = () => {
-      if (isMobileViewport()) {
-        requestAnimationFrame(updateMobilePanelViewport);
-      }
-    };
+  function ensureKeyboardOffsetListeners() {
+    if (keyboardOffsetManager.listenerAttached || typeof window === 'undefined') return;
+    keyboardOffsetManager.listenerAttached = true;
+
+    const handler = () => updateKeyboardOffset();
+
     if (window.visualViewport) {
       window.visualViewport.addEventListener('resize', handler);
       window.visualViewport.addEventListener('scroll', handler);
     }
+    window.addEventListener('orientationchange', () => {
+      setTimeout(updateKeyboardOffset, 250);
+    });
     window.addEventListener('resize', handler);
-    mobileViewportManager.listenersAttached = true;
+
+    handler();
   }
 
   const state = {
@@ -463,7 +433,6 @@
       error: '',
       isDragging: false,
     },
-    isKeyboardVisible: false,
   };
 
   function generateMessageId() {
@@ -1060,13 +1029,13 @@
     };
     textarea.addEventListener('focus', () => {
       if (isMobileViewport()) {
-        ensureMobileViewportListeners();
-        setTimeout(updateMobilePanelViewport, 50);
+        ensureKeyboardOffsetListeners();
+        setTimeout(updateKeyboardOffset, 50);
       }
     });
     textarea.addEventListener('blur', () => {
       if (isMobileViewport()) {
-        setTimeout(updateMobilePanelViewport, 150);
+        setTimeout(updateKeyboardOffset, 150);
       }
     });
 
@@ -1428,10 +1397,6 @@
     }
 
     updateTooltip();
-    if (isMobileViewport()) {
-      ensureMobileViewportListeners();
-      updateMobilePanelViewport();
-    }
   }
 
   function setActiveView(view) {
@@ -1450,7 +1415,8 @@
       initializeChat();
     }
     renderContent();
-    ensureMobileViewportListeners();
+    ensureKeyboardOffsetListeners();
+    updateKeyboardOffset();
   }
 
   function toggleChat() {
@@ -1479,8 +1445,8 @@
       }
       renderContent();
       if (isMobileViewport()) {
-        ensureMobileViewportListeners();
-        updateMobilePanelViewport();
+        ensureKeyboardOffsetListeners();
+        setTimeout(updateKeyboardOffset, 50);
       }
     } else {
       if (panel) panel.style.display = 'none';
@@ -1489,7 +1455,7 @@
         document.body.style.overflow = '';
         document.body.style.position = '';
         document.body.style.width = '';
-        resetMobilePanelViewport();
+        setKeyboardOffset(0);
       }
     }
   }
@@ -1497,7 +1463,6 @@
   function toggleMute() {
     state.isMuted = !state.isMuted;
     renderContent();
-    ensureMobileViewportListeners();
   }
 
   function initSpeechRecognition() {
@@ -1893,7 +1858,7 @@
     }
 
     state.config = await loadConfig();
-
+    ensureKeyboardOffsetListeners();
 
     state.userId = getUserId();
     state.assignedAgent = selectAgent(state.config.agents || {});
