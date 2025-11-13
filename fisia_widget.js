@@ -484,7 +484,7 @@
 
     const container = document.createElement('div');
     container.className = 'fisia-home-view';
-    container.style.cssText = 'display:flex;flex-direction:column;height:100%;position:relative;background:transparent;';
+    container.style.cssText = 'display:flex;flex-direction:column;flex:1;min-height:0;position:relative;background:transparent;';
 
     const scrollable = document.createElement('div');
     scrollable.style.cssText = 'flex:1;position:relative;z-index:10;overflow-y:auto;padding-bottom:32px;';
@@ -709,7 +709,7 @@
   function renderChatView() {
     const isAgentAssigned = state.agent && state.agent.name !== 'Fisia';
     const container = document.createElement('div');
-    container.style.cssText = 'display:flex;flex-direction:column;height:100%;background:transparent;';
+    container.style.cssText = 'display:flex;flex-direction:column;flex:1;min-height:0;background:transparent;';
 
     const header = document.createElement('header');
     header.style.cssText = 'background:rgba(0,0,0,0.25);color:white;padding:16px;display:flex;align-items:center;justify-content:space-between;position:relative;';
@@ -980,7 +980,7 @@
 
   function renderSearchView({ title, iconName, placeholder, itemType }) {
     const container = document.createElement('div');
-    container.style.cssText = 'display:flex;flex-direction:column;height:100%;background:transparent;';
+    container.style.cssText = 'display:flex;flex-direction:column;flex:1;min-height:0;background:transparent;';
 
     const header = document.createElement('header');
     header.style.cssText = 'background:rgba(0,0,0,0.25);color:white;padding:16px;display:flex;align-items:center;';
