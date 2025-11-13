@@ -22,6 +22,14 @@
   };
 
   const styles = `
+    :root {
+      --fisia-safe-area-bottom: env(safe-area-inset-bottom);
+    }
+    @supports not (padding: env(safe-area-inset-bottom)) {
+      :root {
+        --fisia-safe-area-bottom: 0px;
+      }
+    }
     #fisia-widget-button {
       position: fixed;
       bottom: 24px;
@@ -350,6 +358,62 @@
         return acc;
       }, {}),
     };
+  }
+
+  const mobileViewportManager = {
+    listenersAttached: false,
+  };
+  const KEYBOARD_TRIGGER_THRESHOLD = 80;
+
+  function resetMobilePanelViewport() {
+    const panel = document.getElementById('fisia-widget-panel');
+    if (!panel) return;
+    panel.style.top = '';
+    panel.style.bottom = '';
+    panel.style.height = '';
+    panel.style.maxHeight = '';
+  }
+
+  function updateMobilePanelViewport() {
+    const panel = document.getElementById('fisia-widget-panel');
+    if (!panel) return;
+    if (!isMobileViewport() || !state.isOpen) {
+      resetMobilePanelViewport();
+      return;
+    }
+    const vv = window.visualViewport;
+    if (!vv) {
+      panel.style.bottom = '0px';
+      panel.style.top = '0px';
+      panel.style.height = '';
+      panel.style.maxHeight = '';
+      return;
+    }
+    const overlap = Math.max(window.innerHeight - (vv.height + vv.offsetTop), 0);
+    const keyboardVisible = overlap > KEYBOARD_TRIGGER_THRESHOLD;
+    if (!keyboardVisible) {
+      resetMobilePanelViewport();
+      return;
+    }
+    panel.style.top = `${vv.offsetTop}px`;
+    panel.style.bottom = 'auto';
+    panel.style.height = `${vv.height}px`;
+    panel.style.maxHeight = `${vv.height}px`;
+  }
+
+  function ensureMobileViewportListeners() {
+    if (mobileViewportManager.listenersAttached) return;
+    const handler = () => {
+      if (isMobileViewport()) {
+        requestAnimationFrame(updateMobilePanelViewport);
+      }
+    };
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handler);
+      window.visualViewport.addEventListener('scroll', handler);
+    }
+    window.addEventListener('resize', handler);
+    mobileViewportManager.listenersAttached = true;
   }
 
   const state = {
@@ -829,7 +893,8 @@
 
     const messagesContainer = document.createElement('div');
     messagesContainer.id = 'fisia-chat-messages';
-    messagesContainer.style.cssText = 'position:absolute;inset:0;overflow-y:auto;padding:16px 16px 96px;display:flex;flex-direction:column;gap:14px;';
+    messagesContainer.style.cssText =
+      'position:absolute;inset:0;overflow-y:auto;padding:16px 16px calc(96px + var(--fisia-safe-area-bottom));display:flex;flex-direction:column;gap:14px;';
     renderMessages(messagesContainer, state.messages);
     if (state.isTyping) {
       messagesContainer.appendChild(renderTypingIndicator(state.agent.name));
@@ -838,7 +903,8 @@
     messagesContainerWrapper.appendChild(messagesContainer);
 
     const form = document.createElement('form');
-    form.style.cssText = 'position:relative;background:linear-gradient(180deg, rgba(15,23,42,0.92), rgba(8,14,28,0.92));border-top:1px solid rgba(71,85,105,0.3);border-bottom:1px solid rgba(8,14,28,0.9);min-height:128px;padding:4px 18px 6px;';
+    form.style.cssText =
+      'position:relative;background:linear-gradient(180deg, rgba(15,23,42,0.92), rgba(8,14,28,0.92));border-top:1px solid rgba(71,85,105,0.3);border-bottom:1px solid rgba(8,14,28,0.9);min-height:128px;padding:4px 18px calc(6px + var(--fisia-safe-area-bottom));';
     form.onsubmit = (e) => {
       e.preventDefault();
       handleSendMessage(state.inputValue);
@@ -846,8 +912,10 @@
 
     const textarea = document.createElement('textarea');
     textarea.id = 'fisia-chat-input';
-    textarea.style.cssText = 'width:calc(100% - 72px);height:100%;resize:none;background:transparent;border:none;color:#f8fbff;font-size:13px;padding:4px 18px 6px 18px;line-height:1.55;outline:none;box-shadow:none;margin-right:72px;font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-weight:500;letter-spacing:0.005em;';
+    textarea.style.cssText =
+      'width:calc(100% - 72px);height:100%;resize:none;background:transparent;border:none;color:#f8fbff;font-size:16px;padding:4px 18px 6px 18px;line-height:1.55;outline:none;box-shadow:none;margin-right:72px;font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-weight:500;letter-spacing:0.005em;';
     textarea.style.minHeight = '68px';
+    textarea.setAttribute('inputmode', 'text');
     textarea.placeholder = isAgentAssigned ? 'Escribe un mensaje...' : 'Espera a que un agente se conecte...';
     textarea.disabled = !isAgentAssigned || state.isBotReplying;
     textarea.value = state.inputValue;
@@ -968,6 +1036,17 @@
       adjustTextareaHeight();
       updateComposerUI();
     };
+    textarea.addEventListener('focus', () => {
+      if (isMobileViewport()) {
+        ensureMobileViewportListeners();
+        setTimeout(updateMobilePanelViewport, 50);
+      }
+    });
+    textarea.addEventListener('blur', () => {
+      if (isMobileViewport()) {
+        setTimeout(updateMobilePanelViewport, 150);
+      }
+    });
 
     form.appendChild(actions);
 
@@ -1232,7 +1311,8 @@
     content.appendChild(textAreaWrapper);
 
     const footer = document.createElement('footer');
-    footer.style.cssText = 'padding:16px;background:rgba(0,0,0,0.25);border-top:1px solid rgba(255,255,255,0.18);';
+    footer.style.cssText =
+      'padding:16px 16px calc(16px + var(--fisia-safe-area-bottom));background:rgba(0,0,0,0.25);border-top:1px solid rgba(255,255,255,0.18);';
 
     const sendBtn = document.createElement('button');
     sendBtn.style.cssText = `width:100%;padding:14px;border-radius:12px;font-weight:700;border:none;cursor:${state.fileUpload.file ? 'pointer' : 'not-allowed'};transition:background 0.2s ease;color:${state.fileUpload.file ? 'white' : 'rgba(203,213,225,0.75)'};background:${state.fileUpload.file ? 'rgba(14,116,144,0.9)' : 'rgba(14,116,144,0.35)'}`;
@@ -1255,7 +1335,8 @@
 
   function renderFooterNav() {
     const footer = document.createElement('footer');
-    footer.style.cssText = 'background:rgba(0,0,0,0.25);border-top:1px solid rgba(255,255,255,0.18);display:grid;grid-template-columns:repeat(4,1fr);font-size:12px;color:rgba(203,213,225,0.9);padding:0 0 10px;';
+    footer.style.cssText =
+      'background:rgba(0,0,0,0.25);border-top:1px solid rgba(255,255,255,0.18);display:grid;grid-template-columns:repeat(4,1fr);font-size:12px;color:rgba(203,213,225,0.9);padding:6px 0 calc(10px + var(--fisia-safe-area-bottom));';
 
     const items = [
       { view: 'home', icon: 'home', label: 'Inicio' },
@@ -1325,6 +1406,10 @@
     }
 
     updateTooltip();
+    if (isMobileViewport()) {
+      ensureMobileViewportListeners();
+      updateMobilePanelViewport();
+    }
   }
 
   function setActiveView(view) {
@@ -1343,6 +1428,7 @@
       initializeChat();
     }
     renderContent();
+    ensureMobileViewportListeners();
   }
 
   function toggleChat() {
@@ -1370,6 +1456,10 @@
         document.body.style.width = '100%';
       }
       renderContent();
+      if (isMobileViewport()) {
+        ensureMobileViewportListeners();
+        updateMobilePanelViewport();
+      }
     } else {
       if (panel) panel.style.display = 'none';
       if (button) button.classList.remove('open');
@@ -1377,6 +1467,7 @@
         document.body.style.overflow = '';
         document.body.style.position = '';
         document.body.style.width = '';
+        resetMobilePanelViewport();
       }
     }
   }
@@ -1384,6 +1475,7 @@
   function toggleMute() {
     state.isMuted = !state.isMuted;
     renderContent();
+    ensureMobileViewportListeners();
   }
 
   function initSpeechRecognition() {
