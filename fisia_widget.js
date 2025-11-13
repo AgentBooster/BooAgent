@@ -24,6 +24,7 @@
   const styles = `
     :root {
       --fisia-safe-area-bottom: env(safe-area-inset-bottom);
+      --fisia-keyboard-offset: 0px;
     }
     @supports not (padding: env(safe-area-inset-bottom)) {
       :root {
@@ -362,16 +363,38 @@
 
   const mobileViewportManager = {
     listenersAttached: false,
+    touchGuardPanel: null,
   };
   const KEYBOARD_TRIGGER_THRESHOLD = 80;
+  const preventTouchMoveDuringKeyboard = (event) => {
+    if (state.isKeyboardVisible) {
+      event.preventDefault();
+    }
+  };
+
+  function setKeyboardOffset(value) {
+    document.documentElement.style.setProperty('--fisia-keyboard-offset', `${Math.max(0, Math.round(value))}px`);
+  }
+
+  function attachTouchGuard(panel) {
+    if (mobileViewportManager.touchGuardPanel === panel) return;
+    if (mobileViewportManager.touchGuardPanel) {
+      mobileViewportManager.touchGuardPanel.removeEventListener('touchmove', preventTouchMoveDuringKeyboard);
+      mobileViewportManager.touchGuardPanel = null;
+    }
+    if (panel) {
+      panel.addEventListener('touchmove', preventTouchMoveDuringKeyboard, { passive: false });
+      mobileViewportManager.touchGuardPanel = panel;
+    }
+  }
 
   function resetMobilePanelViewport() {
     const panel = document.getElementById('fisia-widget-panel');
+    setKeyboardOffset(0);
+    attachTouchGuard(null);
+    state.isKeyboardVisible = false;
     if (!panel) return;
-    panel.style.top = '';
-    panel.style.bottom = '';
-    panel.style.height = '';
-    panel.style.maxHeight = '';
+    panel.style.overflow = '';
   }
 
   function updateMobilePanelViewport() {
@@ -383,10 +406,7 @@
     }
     const vv = window.visualViewport;
     if (!vv) {
-      panel.style.bottom = '0px';
-      panel.style.top = '0px';
-      panel.style.height = '';
-      panel.style.maxHeight = '';
+      resetMobilePanelViewport();
       return;
     }
     const overlap = Math.max(window.innerHeight - (vv.height + vv.offsetTop), 0);
@@ -395,10 +415,11 @@
       resetMobilePanelViewport();
       return;
     }
-    panel.style.top = `${vv.offsetTop}px`;
-    panel.style.bottom = 'auto';
-    panel.style.height = `${vv.height}px`;
-    panel.style.maxHeight = `${vv.height}px`;
+    const offset = overlap + Math.max(0, vv.offsetTop);
+    setKeyboardOffset(offset);
+    state.isKeyboardVisible = true;
+    panel.style.overflow = 'hidden';
+    attachTouchGuard(panel);
   }
 
   function ensureMobileViewportListeners() {
@@ -442,6 +463,7 @@
       error: '',
       isDragging: false,
     },
+    isKeyboardVisible: false,
   };
 
   function generateMessageId() {
@@ -894,7 +916,7 @@
     const messagesContainer = document.createElement('div');
     messagesContainer.id = 'fisia-chat-messages';
     messagesContainer.style.cssText =
-      'position:absolute;inset:0;overflow-y:auto;padding:16px 16px calc(96px + var(--fisia-safe-area-bottom));display:flex;flex-direction:column;gap:14px;';
+      'position:absolute;inset:0;overflow-y:auto;padding:16px 16px calc(96px + var(--fisia-safe-area-bottom) + var(--fisia-keyboard-offset));display:flex;flex-direction:column;gap:14px;';
     renderMessages(messagesContainer, state.messages);
     if (state.isTyping) {
       messagesContainer.appendChild(renderTypingIndicator(state.agent.name));
@@ -904,7 +926,7 @@
 
     const form = document.createElement('form');
     form.style.cssText =
-      'position:relative;background:linear-gradient(180deg, rgba(15,23,42,0.92), rgba(8,14,28,0.92));border-top:1px solid rgba(71,85,105,0.3);border-bottom:1px solid rgba(8,14,28,0.9);min-height:128px;padding:4px 18px calc(6px + var(--fisia-safe-area-bottom));';
+      'position:relative;background:linear-gradient(180deg, rgba(15,23,42,0.92), rgba(8,14,28,0.92));border-top:1px solid rgba(71,85,105,0.3);border-bottom:1px solid rgba(8,14,28,0.9);min-height:128px;padding:4px 18px calc(6px + var(--fisia-safe-area-bottom) + var(--fisia-keyboard-offset));';
     form.onsubmit = (e) => {
       e.preventDefault();
       handleSendMessage(state.inputValue);
@@ -1312,7 +1334,7 @@
 
     const footer = document.createElement('footer');
     footer.style.cssText =
-      'padding:16px 16px calc(16px + var(--fisia-safe-area-bottom));background:rgba(0,0,0,0.25);border-top:1px solid rgba(255,255,255,0.18);';
+      'padding:16px 16px calc(16px + var(--fisia-safe-area-bottom) + var(--fisia-keyboard-offset));background:rgba(0,0,0,0.25);border-top:1px solid rgba(255,255,255,0.18);';
 
     const sendBtn = document.createElement('button');
     sendBtn.style.cssText = `width:100%;padding:14px;border-radius:12px;font-weight:700;border:none;cursor:${state.fileUpload.file ? 'pointer' : 'not-allowed'};transition:background 0.2s ease;color:${state.fileUpload.file ? 'white' : 'rgba(203,213,225,0.75)'};background:${state.fileUpload.file ? 'rgba(14,116,144,0.9)' : 'rgba(14,116,144,0.35)'}`;
@@ -1336,7 +1358,7 @@
   function renderFooterNav() {
     const footer = document.createElement('footer');
     footer.style.cssText =
-      'background:rgba(0,0,0,0.25);border-top:1px solid rgba(255,255,255,0.18);display:grid;grid-template-columns:repeat(4,1fr);font-size:12px;color:rgba(203,213,225,0.9);padding:6px 0 calc(10px + var(--fisia-safe-area-bottom));';
+      'background:rgba(0,0,0,0.25);border-top:1px solid rgba(255,255,255,0.18);display:grid;grid-template-columns:repeat(4,1fr);font-size:12px;color:rgba(203,213,225,0.9);padding:6px 0 calc(10px + var(--fisia-safe-area-bottom) + var(--fisia-keyboard-offset));';
 
     const items = [
       { view: 'home', icon: 'home', label: 'Inicio' },
