@@ -369,7 +369,6 @@
     inputValue: '',
     isRecording: false,
     recognitionRef: null,
-    shouldRestartRecognition: false,
     micPermissionStatus: 'unknown',
     micPermissionRequest: null,
     fileUpload: {
@@ -768,6 +767,8 @@
     muteBtn.onmouseleave = () => (muteBtn.style.background = 'transparent');
     muteBtn.onclick = () => toggleMute();
     const muteIcon = createIcon(state.isMuted ? 'volume-off' : 'volume');
+    muteIcon.style.width = '24px';
+    muteIcon.style.height = '24px';
     muteBtn.appendChild(muteIcon);
 
     const micBtn = document.createElement('button');
@@ -808,6 +809,8 @@
       toggleRecording();
     };
     const micIcon = createIcon('mic');
+    micIcon.style.width = '24px';
+    micIcon.style.height = '24px';
     micBtn.appendChild(micIcon);
 
     controls.appendChild(muteBtn);
@@ -895,6 +898,8 @@
     clipBtn.style.opacity = clipBtn.disabled ? '0.5' : '1';
     clipBtn.style.cursor = clipBtn.disabled ? 'not-allowed' : 'pointer';
     const clipIcon = createIcon('clip');
+    clipIcon.style.width = '24px';
+    clipIcon.style.height = '24px';
     clipBtn.appendChild(clipIcon);
 
     /* BEGIN: TEMPORARY FILE UPLOAD DISABLE BLOCK
@@ -933,6 +938,8 @@
       sendBtn.style.transform = 'scale(1)';
     };
     const sendIcon = createIcon('send');
+    sendIcon.style.width = '24px';
+    sendIcon.style.height = '24px';
     sendBtn.appendChild(sendIcon);
 
     actions.appendChild(clipWrapper);
@@ -1322,14 +1329,11 @@
 
   function setActiveView(view) {
     hideTooltip();
-    if (view !== 'chat' && state.recognitionRef) {
-      state.shouldRestartRecognition = false;
-      if (state.isRecording) {
-        try {
-          state.recognitionRef.stop();
-        } catch (err) {
-          console.error('Error al detener reconocimiento:', err);
-        }
+    if (view !== 'chat' && state.recognitionRef && state.isRecording) {
+      try {
+        state.recognitionRef.stop();
+      } catch (err) {
+        console.error('Error al detener reconocimiento:', err);
       }
       state.isRecording = false;
     }
@@ -1343,14 +1347,11 @@
 
   function toggleChat() {
     state.isOpen = !state.isOpen;
-    if (!state.isOpen && state.recognitionRef) {
-      state.shouldRestartRecognition = false;
-      if (state.isRecording) {
-        try {
-          state.recognitionRef.stop();
-        } catch (err) {
-          console.error('Error al detener reconocimiento:', err);
-        }
+    if (!state.isOpen && state.recognitionRef && state.isRecording) {
+      try {
+        state.recognitionRef.stop();
+      } catch (err) {
+        console.error('Error al detener reconocimiento:', err);
       }
       state.isRecording = false;
     }
@@ -1422,7 +1423,6 @@
       console.error('Error en reconocimiento de voz:', event.error);
       const fatalErrors = ['not-allowed', 'service-not-allowed', 'audio-capture'];
       if (fatalErrors.includes(event.error)) {
-        state.shouldRestartRecognition = false;
         state.isRecording = false;
         if (event.error !== 'audio-capture') {
           state.micPermissionStatus = 'denied';
@@ -1432,21 +1432,8 @@
     };
 
     recognition.onend = () => {
-      if (state.shouldRestartRecognition) {
-        setTimeout(() => {
-          try {
-            recognition.start();
-          } catch (err) {
-            console.error('Error al reiniciar reconocimiento:', err);
-            state.shouldRestartRecognition = false;
-            state.isRecording = false;
-            renderContent();
-          }
-        }, 250);
-      } else if (state.isRecording) {
+      if (state.isRecording) {
         state.isRecording = false;
-        renderContent();
-      } else {
         renderContent();
       }
     };
@@ -1459,8 +1446,7 @@
     const recognition = initSpeechRecognition();
     if (!recognition) return;
 
-    if (state.isRecording || state.shouldRestartRecognition) {
-      state.shouldRestartRecognition = false;
+    if (state.isRecording) {
       try {
         recognition.stop();
       } catch (err) {
@@ -1473,13 +1459,11 @@
 
     const hasPermission = await ensureMicrophonePermission();
     if (!hasPermission) {
-      state.shouldRestartRecognition = false;
       state.isRecording = false;
       renderContent();
       return;
     }
 
-    state.shouldRestartRecognition = true;
     try {
       recognition.start();
       state.isRecording = true;
@@ -1490,7 +1474,6 @@
         state.isRecording = true;
         return;
       }
-      state.shouldRestartRecognition = false;
       state.isRecording = false;
       if (err.name === 'NotAllowedError') {
         state.micPermissionStatus = 'denied';
